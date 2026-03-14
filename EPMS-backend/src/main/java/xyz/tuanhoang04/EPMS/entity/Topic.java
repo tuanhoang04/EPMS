@@ -1,8 +1,6 @@
 package xyz.tuanhoang04.EPMS.entity;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
-import jakarta.persistence.Entity;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import xyz.tuanhoang04.EPMS.entity.base.BaseEntity;
@@ -13,10 +11,16 @@ import java.util.List;
 @Setter
 @Entity
 public class Topic extends BaseEntity {
-    private String topicName;
-    private String topicDescription;
+    private String name;
+    private String description;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name="subject_id")
+    private Subject subject;
 
     @OneToMany(mappedBy = "topic")
-    @JsonManagedReference
     private List<Question> questions;
+
+    @ManyToMany(mappedBy = "topics")
+    private List<TemplatePart> templateParts;
 }
