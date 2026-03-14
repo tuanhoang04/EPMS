@@ -1,5 +1,6 @@
 package xyz.tuanhoang04.EPMS.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -17,5 +18,6 @@ public class ExamHistoryRawText extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name="template_id")
+    @JsonManagedReference
     private Template template;
 }

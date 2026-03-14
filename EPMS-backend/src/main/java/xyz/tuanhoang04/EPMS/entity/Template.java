@@ -1,5 +1,6 @@
 package xyz.tuanhoang04.EPMS.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -16,5 +17,6 @@ public class Template extends BaseEntity {
     private String title;
 
     @OneToMany(mappedBy = "template")
+    @JsonManagedReference
     private List<ExamHistoryRawText> examHistoryRawTexts;
 }
