@@ -5,13 +5,14 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.OneToMany;
 import lombok.Getter;
 import lombok.Setter;
+import xyz.tuanhoang04.EPMS.entity.base.BaseEntity;
 
 import java.util.List;
 
 @Getter
 @Setter
 @Entity
-public class User {
+public class User extends BaseEntity {
     @Column(nullable = false)
     private String firstName;
 

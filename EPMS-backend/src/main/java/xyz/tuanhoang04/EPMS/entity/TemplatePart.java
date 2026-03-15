@@ -5,13 +5,14 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import xyz.tuanhoang04.EPMS.constant.QuestionType;
+import xyz.tuanhoang04.EPMS.entity.base.BaseEntity;
 
 import java.util.List;
 
 @Getter
 @Setter
 @Entity
-public class TemplatePart {
+public class TemplatePart extends BaseEntity {
     private String title;
     private int seqNumber;
     private int numberOfQuestions;

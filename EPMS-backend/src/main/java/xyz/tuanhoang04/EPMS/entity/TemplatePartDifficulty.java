@@ -9,13 +9,14 @@ import jakarta.validation.constraints.DecimalMin;
 import lombok.Getter;
 import lombok.Setter;
 import xyz.tuanhoang04.EPMS.constant.Difficulty;
+import xyz.tuanhoang04.EPMS.entity.base.BaseEntity;
 
 import java.math.BigDecimal;
 
 @Getter
 @Setter
 @Entity
-public class TemplatePartDifficulty {
+public class TemplatePartDifficulty extends BaseEntity {
     private Difficulty difficulty;
 
     @DecimalMin(value = "0.0", message = "Difficulty value must be at least 0")
