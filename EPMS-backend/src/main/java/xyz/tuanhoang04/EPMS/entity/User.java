@@ -1,10 +1,9 @@
 package xyz.tuanhoang04.EPMS.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import xyz.tuanhoang04.EPMS.constant.Role;
 import xyz.tuanhoang04.EPMS.entity.base.BaseEntity;
 
 import java.util.List;
@@ -24,6 +23,9 @@ public class User extends BaseEntity {
 
     @Column(nullable = false)
     private String passwordHash;
+
+    @Enumerated(EnumType.STRING)
+    private Role role;
 
     @OneToMany(mappedBy = "user")
     private List<Subject> subjects;
