@@ -5,29 +5,83 @@
   <!-- Toolbar -->
   <div class="toolbar">
     <div class="left"></div>
-
     <div class="right">
-      <button pButton icon="pi pi-list" class="p-button-text"></button>
-      <button pButton icon="pi pi-plus" class="p-button-rounded"></button>
+      <button
+        pButton
+        [icon]="viewMode === 'grid' ? 'pi pi-list' : 'pi pi-th-large'"
+        [text]="true"
+        [rounded]="true"
+        severity="secondary"
+        (click)="toggleView()"
+      ></button>
+      <button
+        pButton
+        icon="pi pi-plus"
+        [rounded]="true"
+        (click)="showAddModal = true"
+      ></button>
     </div>
   </div>
 
-  <!-- Cards grid -->
-  <div class="card-grid">
-    <div class="card" *ngFor="let item of subjects">
-
-      <img [src]="item.image" alt="thumbnail" />
-
-      <div class="card-content">
-        <h3>{{ item.title }}</h3>
-        <p>{{ item.questions }} Questions - {{ item.topics }} Topics</p>
-        <small>{{ item.description }}</small>
-      </div>
-
-      <button pButton icon="pi pi-ellipsis-h" class="menu-btn p-button-text"></button>
-
+  <!-- Loading state -->
+  @if (loading) {
+    <div class="loading-state">
+      <i class="pi pi-spin pi-spinner"></i>
     </div>
-  </div>
+  }
+
+  <!-- Empty state -->
+  @if (!loading && subjects.length === 0) {
+    <div class="empty-state">
+      <i class="pi pi-book"></i>
+      <p>No subjects yet. Click <strong>+</strong> to add one.</p>
+    </div>
+  }
+
+  <!-- Grid view -->
+  @if (!loading && viewMode === 'grid' && subjects.length > 0) {
+    <div class="card-grid">
+      @for (subject of pagedSubjects; track subject.id) {
+        <div class="card">
+          <img [src]="getSubjectImage(subject)" alt="thumbnail" />
+          <div class="card-content">
+            <h3>{{ subject.name }}</h3>
+            <p class="meta">0 Questions &ndash; 0 Topics</p>
+            <small>{{ subject.description || '&nbsp;' }}</small>
+          </div>
+          <button pButton icon="pi pi-ellipsis-h" class="menu-btn" [text]="true" severity="secondary"></button>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- List view -->
+  @if (!loading && viewMode === 'list' && subjects.length > 0) {
+    <div class="subject-list">
+      @for (subject of pagedSubjects; track subject.id) {
+        <div class="list-item">
+          <img [src]="getSubjectImage(subject)" alt="thumbnail" class="list-thumb" />
+          <div class="list-content">
+            <h3>{{ subject.name }}</h3>
+            <p>{{ subject.description || 'No description' }}</p>
+          </div>
+          <button pButton icon="pi pi-ellipsis-h" [text]="true" severity="secondary"></button>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Paginator -->
+  @if (!loading && subjects.length > 0) {
+    <p-paginator
+      [rows]="pageSize"
+      [totalRecords]="subjects.length"
+      [rowsPerPageOptions]="pageSizeOptions"
+      (onPageChange)="onPageChange($event)"
+      [showCurrentPageReport]="true"
+      currentPageReportTemplate="{first}–{last} of {totalRecords}"
+    />
+  }
 
 </div>
 
@@ -50,3 +104,15 @@
     <span>Exam history</span>
   </div>
 </div>
+
+<!-- Add Subject Modal -->
+<app-modal
+  [visible]="showAddModal"
+  title="Add Subject"
+  (closed)="onModalClosed()"
+>
+  <app-add-subject
+    (saved)="onSubjectSaved()"
+    (cancelled)="onModalClosed()"
+  />
+</app-modal>

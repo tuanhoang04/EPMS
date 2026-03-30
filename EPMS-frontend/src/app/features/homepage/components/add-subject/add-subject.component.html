@@ -1,0 +1,37 @@
+<div class="add-subject-form">
+  <div class="field">
+    <label for="subj-name">Subject Name <span class="required">*</span></label>
+    <input
+      pInputText
+      id="subj-name"
+      [(ngModel)]="name"
+      placeholder="Enter subject name"
+    />
+  </div>
+
+  <div class="field">
+    <label for="subj-desc">Description</label>
+    <textarea
+      pTextarea
+      id="subj-desc"
+      [(ngModel)]="description"
+      placeholder="Enter description (optional)"
+      rows="5"
+    ></textarea>
+  </div>
+
+  <div class="form-actions">
+    <p-button
+      label="Cancel"
+      severity="secondary"
+      [outlined]="true"
+      (onClick)="cancel()"
+    />
+    <p-button
+      label="Save"
+      [loading]="saving"
+      [disabled]="!name.trim()"
+      (onClick)="save()"
+    />
+  </div>
+</div>

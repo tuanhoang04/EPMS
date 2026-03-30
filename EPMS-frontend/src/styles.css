@@ -1,8 +1,12 @@
-/* You can add global styles to this file, and also import other style files */
-
+@import "primeicons/primeicons.css";
 @import "tailwindcss";
 
 @layer base {
+  html {
+    /* Force light color-scheme so browser never renders inputs/scrollbars in dark mode */
+    color-scheme: light;
+  }
+
   body {
     @apply bg-[#faf9f5] text-black;
   }
