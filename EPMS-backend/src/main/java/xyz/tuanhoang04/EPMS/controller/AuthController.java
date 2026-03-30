@@ -67,7 +67,6 @@ public class AuthController {
                         .email(user.getEmailAddress())
                         .firstName(user.getFirstName())
                         .lastName(user.getLastName())
-                        .phoneNumber(user.getPhoneNumber())
                         .role(user.getRole())
                         .build())
                 .build());
@@ -83,7 +82,6 @@ public class AuthController {
                 .email(user.getEmailAddress())
                 .firstName(user.getFirstName())
                 .lastName(user.getLastName())
-                .phoneNumber(user.getPhoneNumber())
                 .role(user.getRole())
                 .build());
     }
@@ -95,7 +93,6 @@ public class AuthController {
 
         if (request.getFirstName() != null) user.setFirstName(request.getFirstName());
         if (request.getLastName() != null) user.setLastName(request.getLastName());
-        if (request.getPhoneNumber() != null) user.setPhoneNumber(request.getPhoneNumber());
 
         userRepository.save(user);
 
@@ -104,7 +101,6 @@ public class AuthController {
                 .email(user.getEmailAddress())
                 .firstName(user.getFirstName())
                 .lastName(user.getLastName())
-                .phoneNumber(user.getPhoneNumber())
                 .role(user.getRole())
                 .build());
     }
