@@ -11,6 +11,7 @@ import java.util.UUID;
 
 public interface QuestionRepository extends JpaRepository<Question, UUID>, JpaSpecificationExecutor<Question> {
     List<Question> findByTopicId(UUID topicId);
+    long countByTopicSubjectUserId(UUID userId);
     List<Question> findByDifficulty(Difficulty difficulty);
     List<Question> findByQuestionType(QuestionType questionType);
     List<Question> findByTopicIdInAndDifficultyInAndQuestionType(List<UUID> topicIds, List<Difficulty> difficulties, QuestionType questionType);

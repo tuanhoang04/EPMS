@@ -8,5 +8,6 @@ import java.util.UUID;
 
 public interface TemplateRepository extends JpaRepository<Template, UUID> {
     List<Template> findBySubjectId(UUID subjectId);
+    long countBySubjectUserId(UUID userId);
     List<Template> findByTitleContainingIgnoreCase(String title);
 }

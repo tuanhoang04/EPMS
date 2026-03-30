@@ -10,6 +10,7 @@ import java.util.UUID;
 
 public interface SubjectRepository extends JpaRepository<Subject, UUID> {
     List<Subject> findByUserId(UUID userId);
+    long countByUserId(UUID userId);
     List<Subject> findByNameContainingIgnoreCase(String name);
 
     @Query("SELECT COUNT(t) FROM Topic t WHERE t.subject.id = :subjectId")

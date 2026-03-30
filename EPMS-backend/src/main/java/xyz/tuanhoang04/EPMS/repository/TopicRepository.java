@@ -8,5 +8,6 @@ import java.util.UUID;
 
 public interface TopicRepository extends JpaRepository<Topic, UUID> {
     List<Topic> findBySubjectId(UUID subjectId);
+    long countBySubjectUserId(UUID userId);
     List<Topic> findByNameContainingIgnoreCase(String name);
 }

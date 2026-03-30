@@ -8,5 +8,6 @@ import java.util.UUID;
 
 public interface ExamHistoryRawTextRepository extends JpaRepository<ExamHistoryRawText, UUID> {
     List<ExamHistoryRawText> findByTemplateId(UUID templateId);
+    long countByTemplateSubjectUserId(UUID userId);
     List<ExamHistoryRawText> findByTitleContainingIgnoreCase(String title);
 }
