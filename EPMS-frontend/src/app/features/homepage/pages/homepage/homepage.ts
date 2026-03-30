@@ -3,7 +3,7 @@ import { Component, OnInit } from '@angular/core';
 import { HeaderComponent } from '../../../../shared/components/header/Header.component';
 import { ModalComponent } from '../../../../shared/components/modal/modal.component';
 import { AddSubjectComponent } from '../../components/add-subject/add-subject.component';
-import { SubjectService, SubjectResponse } from '../../services/subject.service';
+import { SubjectService, SubjectResponse, SubjectPage } from '../../services/subject.service';
 import { ButtonModule } from 'primeng/button';
 import { PaginatorModule } from 'primeng/paginator';
 
@@ -21,15 +21,15 @@ import { PaginatorModule } from 'primeng/paginator';
   styleUrl: './homepage.scss',
 })
 export class Homepage implements OnInit {
-  subjects: SubjectResponse[] = [];
+  page: SubjectPage | null = null;
   loading = false;
 
   viewMode: 'grid' | 'list' = 'grid';
   showAddModal = false;
 
-  currentPage = 0;
-  pageSize = 8;
-  readonly pageSizeOptions = [4, 8, 12, 20];
+  pageIndex = 0;
+  pageSize = 16;
+  readonly pageSizeOptions = [8, 16, 24, 32];
 
   constructor(private subjectService: SubjectService) {}
 
@@ -39,9 +39,9 @@ export class Homepage implements OnInit {
 
   loadSubjects() {
     this.loading = true;
-    this.subjectService.getAll().subscribe({
+    this.subjectService.getAll(this.pageIndex, this.pageSize).subscribe({
       next: (data) => {
-        this.subjects = data;
+        this.page = data;
         this.loading = false;
       },
       error: () => {
@@ -50,14 +50,10 @@ export class Homepage implements OnInit {
     });
   }
 
-  get pagedSubjects(): SubjectResponse[] {
-    const start = this.currentPage * this.pageSize;
-    return this.subjects.slice(start, start + this.pageSize);
-  }
-
   onPageChange(event: { page?: number; rows?: number }) {
-    this.currentPage = event.page ?? 0;
+    this.pageIndex = event.page ?? 0;
     this.pageSize = event.rows ?? this.pageSize;
+    this.loadSubjects();
   }
 
   toggleView() {
@@ -66,6 +62,7 @@ export class Homepage implements OnInit {
 
   onSubjectSaved() {
     this.showAddModal = false;
+    this.pageIndex = 0;
     this.loadSubjects();
   }
 

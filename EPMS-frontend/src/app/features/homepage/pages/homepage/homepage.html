@@ -31,7 +31,7 @@
   }
 
   <!-- Empty state -->
-  @if (!loading && subjects.length === 0) {
+  @if (!loading && page && page.totalElements === 0) {
     <div class="empty-state">
       <i class="pi pi-book"></i>
       <p>No subjects yet. Click <strong>+</strong> to add one.</p>
@@ -39,14 +39,14 @@
   }
 
   <!-- Grid view -->
-  @if (!loading && viewMode === 'grid' && subjects.length > 0) {
+  @if (!loading && page && page.content.length > 0 && viewMode === 'grid') {
     <div class="card-grid">
-      @for (subject of pagedSubjects; track subject.id) {
+      @for (subject of page.content; track subject.id) {
         <div class="card">
           <img [src]="getSubjectImage(subject)" alt="thumbnail" />
           <div class="card-content">
             <h3>{{ subject.name }}</h3>
-            <p class="meta">0 Questions &ndash; 0 Topics</p>
+            <p class="meta">{{ subject.questionCount }} Questions &ndash; {{ subject.topicCount }} Topics</p>
             <small>{{ subject.description || '&nbsp;' }}</small>
           </div>
           <button pButton icon="pi pi-ellipsis-h" class="menu-btn" [text]="true" severity="secondary"></button>
@@ -56,14 +56,15 @@
   }
 
   <!-- List view -->
-  @if (!loading && viewMode === 'list' && subjects.length > 0) {
+  @if (!loading && page && page.content.length > 0 && viewMode === 'list') {
     <div class="subject-list">
-      @for (subject of pagedSubjects; track subject.id) {
+      @for (subject of page.content; track subject.id) {
         <div class="list-item">
           <img [src]="getSubjectImage(subject)" alt="thumbnail" class="list-thumb" />
           <div class="list-content">
             <h3>{{ subject.name }}</h3>
-            <p>{{ subject.description || 'No description' }}</p>
+            <p class="meta">{{ subject.questionCount }} Questions &ndash; {{ subject.topicCount }} Topics</p>
+            <small>{{ subject.description || 'No description' }}</small>
           </div>
           <button pButton icon="pi pi-ellipsis-h" [text]="true" severity="secondary"></button>
         </div>
@@ -72,10 +73,10 @@
   }
 
   <!-- Paginator -->
-  @if (!loading && subjects.length > 0) {
+  @if (!loading && page && page.totalElements > 0) {
     <p-paginator
       [rows]="pageSize"
-      [totalRecords]="subjects.length"
+      [totalRecords]="page.totalElements"
       [rowsPerPageOptions]="pageSizeOptions"
       (onPageChange)="onPageChange($event)"
       [showCurrentPageReport]="true"

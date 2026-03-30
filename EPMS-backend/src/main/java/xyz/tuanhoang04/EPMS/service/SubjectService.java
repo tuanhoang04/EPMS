@@ -1,5 +1,8 @@
 package xyz.tuanhoang04.EPMS.service;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import xyz.tuanhoang04.EPMS.dto.requests.SubjectRequest;
@@ -25,10 +28,10 @@ public class SubjectService {
         this.userRepository = userRepository;
     }
 
-    public List<SubjectResponse> getAllSubjects() {
-        return subjectRepository.findAll().stream()
-                .map(this::mapToResponse)
-                .collect(Collectors.toList());
+    public Page<SubjectResponse> getAllSubjects(int pageIndex, int pageSize) {
+        Pageable pageable = PageRequest.of(pageIndex, pageSize);
+        return subjectRepository.findAll(pageable)
+                .map(this::mapToResponse);
     }
 
     public SubjectResponse getSubjectById(UUID id) {
@@ -71,6 +74,8 @@ public class SubjectService {
                 .id(subject.getId())
                 .name(subject.getName())
                 .description(subject.getDescription())
+                .topicCount((int) subjectRepository.countTopicsBySubjectId(subject.getId()))
+                .questionCount((int) subjectRepository.countQuestionsBySubjectId(subject.getId()))
                 .createdAt(subject.getCreatedAt())
                 .updatedAt(subject.getUpdatedAt())
                 .build();

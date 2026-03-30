@@ -1,5 +1,6 @@
 package xyz.tuanhoang04.EPMS.controller;
 
+import org.springframework.data.domain.Page;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import xyz.tuanhoang04.EPMS.dto.requests.SubjectRequest;
@@ -20,8 +21,10 @@ public class SubjectController {
     }
 
     @GetMapping
-    public List<SubjectResponse> getAllSubjects() {
-        return subjectService.getAllSubjects();
+    public Page<SubjectResponse> getAllSubjects(
+            @RequestParam(defaultValue = "0") int pageIndex,
+            @RequestParam(defaultValue = "10") int pageSize) {
+        return subjectService.getAllSubjects(pageIndex, pageSize);
     }
 
     @GetMapping("/{id}")
