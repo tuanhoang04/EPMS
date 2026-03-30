@@ -8,7 +8,7 @@
     <div class="right">
       <button
         pButton
-        [icon]="viewMode === 'grid' ? 'pi pi-list' : 'pi pi-th-large'"
+        [icon]="viewMode() === 'grid' ? 'pi pi-list' : 'pi pi-th-large'"
         [text]="true"
         [rounded]="true"
         severity="secondary"
@@ -18,20 +18,20 @@
         pButton
         icon="pi pi-plus"
         [rounded]="true"
-        (click)="showAddModal = true"
+        (click)="showAddModal.set(true)"
       ></button>
     </div>
   </div>
 
   <!-- Loading state -->
-  @if (loading) {
+  @if (loading()) {
     <div class="loading-state">
       <i class="pi pi-spin pi-spinner"></i>
     </div>
   }
 
   <!-- Empty state -->
-  @if (!loading && page && page.totalElements === 0) {
+  @if (!loading() && page() && page()!.totalElements === 0) {
     <div class="empty-state">
       <i class="pi pi-book"></i>
       <p>No subjects yet. Click <strong>+</strong> to add one.</p>
@@ -39,9 +39,9 @@
   }
 
   <!-- Grid view -->
-  @if (!loading && page && page.content.length > 0 && viewMode === 'grid') {
+  @if (!loading() && page() && page()!.content.length > 0 && viewMode() === 'grid') {
     <div class="card-grid">
-      @for (subject of page.content; track subject.id) {
+      @for (subject of page()!.content; track subject.id) {
         <div class="card">
           <img [src]="getSubjectImage(subject)" alt="thumbnail" />
           <div class="card-content">
@@ -56,9 +56,9 @@
   }
 
   <!-- List view -->
-  @if (!loading && page && page.content.length > 0 && viewMode === 'list') {
+  @if (!loading() && page() && page()!.content.length > 0 && viewMode() === 'list') {
     <div class="subject-list">
-      @for (subject of page.content; track subject.id) {
+      @for (subject of page()!.content; track subject.id) {
         <div class="list-item">
           <img [src]="getSubjectImage(subject)" alt="thumbnail" class="list-thumb" />
           <div class="list-content">
@@ -73,10 +73,10 @@
   }
 
   <!-- Paginator -->
-  @if (!loading && page && page.totalElements > 0) {
+  @if (!loading() && page() && page()!.totalElements > 0) {
     <p-paginator
-      [rows]="pageSize"
-      [totalRecords]="page.totalElements"
+      [rows]="pageSize()"
+      [totalRecords]="page()!.totalElements"
       [rowsPerPageOptions]="pageSizeOptions"
       (onPageChange)="onPageChange($event)"
       [showCurrentPageReport]="true"
@@ -108,7 +108,7 @@
 
 <!-- Add Subject Modal -->
 <app-modal
-  [visible]="showAddModal"
+  [visible]="showAddModal()"
   title="Add Subject"
   (closed)="onModalClosed()"
 >

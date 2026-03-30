@@ -5,5 +5,9 @@ export const routes: Routes = [
   {
     path: '',
     component: Homepage
+  },
+  {
+    path: '**',
+    redirectTo: ''
   }
 ];

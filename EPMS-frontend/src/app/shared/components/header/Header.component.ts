@@ -1,9 +1,13 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, inject, signal, effect } from '@angular/core';
 import { Router } from '@angular/router';
 import { MenuItem } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { MenuModule } from 'primeng/menu';
+import { AuthService } from '../../../core/services/auth.service';
+import { AuthModalComponent } from '../auth-modal/auth-modal.component';
+import { ModalComponent } from '../modal/modal.component';
+import ProfileComponent from '../../../features/profile/pages/profile/profile';
 
 @Component({
   selector: 'app-header',
@@ -12,25 +16,44 @@ import { MenuModule } from 'primeng/menu';
     CommonModule,
     ButtonModule,
     MenuModule,
+    AuthModalComponent,
+    ModalComponent,
+    ProfileComponent
   ],
   templateUrl: './Header.component.html',
   styleUrls: ['./Header.component.scss']
 })
 export class HeaderComponent implements OnInit {
+  private router = inject(Router);
+  authService = inject(AuthService);
 
   /** The title displayed on the left side of the header */
   @Input() pageTitle: string = 'EPMS Homepage';
 
   /** Controls which menu items are shown. Pass false to hide an item. */
-  @Input() showLogin: boolean = true;
-  @Input() showLogout: boolean = true;
   @Input() showProfile: boolean = true;
-  @Input() showSignIn: boolean = true;
-  @Input() showSignUp: boolean = true;
 
   profileMenuItems: MenuItem[] = [];
+  authModalVisible = signal(false);
+  authModalMode = signal<'login' | 'signup'>('login');
+  profileModalVisible = signal(false);
 
-  constructor(private router: Router) { }
+  constructor() {
+    effect(() => {
+      if (!this.authService.isAuthenticated()) {
+        this.authModalMode.set('login');
+        this.authModalVisible.set(true);
+      } else {
+        this.authModalVisible.set(false);
+      }
+    });
+
+    effect(() => {
+      // Rebuild menu items when auth state changes
+      this.authService.isAuthenticated();
+      this.buildMenuItems();
+    });
+  }
 
   ngOnInit(): void {
     this.buildMenuItems();
@@ -38,44 +61,16 @@ export class HeaderComponent implements OnInit {
 
   private buildMenuItems(): void {
     const items: MenuItem[] = [];
+    const isAuthenticated = this.authService.isAuthenticated();
 
-    if (this.showProfile) {
-      items.push({
-        label: 'Profile',
-        icon: 'pi pi-user',
-        command: () => this.onProfile()
-      });
-    }
-
-    if (this.showLogin || this.showSignIn) {
-      items.push({ separator: true });
-    }
-
-    if (this.showLogin) {
-      items.push({
-        label: 'Log In',
-        icon: 'pi pi-sign-in',
-        command: () => this.onLogin()
-      });
-    }
-
-    if (this.showSignIn) {
-      items.push({
-        label: 'Sign In',
-        icon: 'pi pi-key',
-        command: () => this.onSignIn()
-      });
-    }
-
-    if (this.showSignUp) {
-      items.push({
-        label: 'Sign Up',
-        icon: 'pi pi-user-plus',
-        command: () => this.onSignUp()
-      });
-    }
-
-    if (this.showLogout) {
+    if (isAuthenticated) {
+      if (this.showProfile) {
+        items.push({
+          label: 'Profile',
+          icon: 'pi pi-user',
+          command: () => this.onProfile()
+        });
+      }
       items.push({ separator: true });
       items.push({
         label: 'Log Out',
@@ -83,30 +78,42 @@ export class HeaderComponent implements OnInit {
         styleClass: 'logout-item',
         command: () => this.onLogout()
       });
+    } else {
+      items.push({
+        label: 'Sign In',
+        icon: 'pi pi-sign-in',
+        command: () => this.onSignIn()
+      });
+      items.push({
+        label: 'Sign Up',
+        icon: 'pi pi-user-plus',
+        command: () => this.onSignUp()
+      });
     }
 
     this.profileMenuItems = items;
   }
 
   onProfile(): void {
-    this.router.navigate(['/profile']);
+    this.profileModalVisible.set(true);
   }
 
-  onLogin(): void {
-    this.router.navigate(['/login']);
+  onHome(): void {
+    this.router.navigate(['/']);
   }
 
   onSignIn(): void {
-    this.router.navigate(['/sign-in']);
+    this.authModalMode.set('login');
+    this.authModalVisible.set(true);
   }
 
   onSignUp(): void {
-    this.router.navigate(['/sign-up']);
+    this.authModalMode.set('signup');
+    this.authModalVisible.set(true);
   }
 
   onLogout(): void {
-    // Add your logout logic here (clear token, call auth service, etc.)
-    console.log('User logged out');
-    this.router.navigate(['/login']);
+    this.authService.logout();
+    this.router.navigate(['/']);
   }
 }

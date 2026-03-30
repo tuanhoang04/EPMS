@@ -1,16 +1,18 @@
 @if (visible) {
-  <div class="modal-backdrop">
-    <div class="modal-container">
+  <div class="modal-backdrop" (click)="onBackdropClick($event)">
+    <div class="modal-container" [class.large]="size === 'large'">
       <div class="modal-header">
         <span class="modal-title">{{ title }}</span>
-        <p-button
-          icon="pi pi-times"
-          [text]="true"
-          [rounded]="true"
-          severity="secondary"
-          (onClick)="close()"
-          ariaLabel="Close"
-        />
+        @if (closable) {
+          <p-button
+            icon="pi pi-times"
+            [text]="true"
+            [rounded]="true"
+            severity="secondary"
+            (onClick)="close()"
+            ariaLabel="Close"
+          />
+        }
       </div>
       <div class="modal-body">
         <ng-content />

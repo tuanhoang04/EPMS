@@ -1,0 +1,61 @@
+<app-modal
+  [visible]="visible"
+  [title]="isLogin ? 'Sign In' : 'Sign Up'"
+  [closable]="closable()"
+  (closed)="onClose()"
+>
+  @if (errorMessage()) {
+    <div class="error-message">
+      {{ errorMessage() }}
+    </div>
+  }
+  @if (successMessage()) {
+    <div class="success-message">
+      {{ successMessage() }}
+    </div>
+  }
+
+  @if (isLogin) {
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="auth-form">
+      <div class="form-field">
+        <label for="email">Email</label>
+        <input pInputText id="email" formControlName="email" type="email" placeholder="Enter your email" class="w-full" />
+      </div>
+      <div class="form-field">
+        <label for="password">Password</label>
+        <p-password id="password" formControlName="password" [feedback]="false" [toggleMask]="true" placeholder="Enter your password" styleClass="w-full" inputStyleClass="w-full"></p-password>
+      </div>
+      <div class="form-actions">
+        <p-button type="submit" label="Sign In" [loading]="isSubmitting()" styleClass="w-full"></p-button>
+      </div>
+      <div class="form-footer">
+        Don't have an account? <a (click)="switchMode()">Sign up</a>
+      </div>
+    </form>
+  } @else {
+    <form [formGroup]="signupForm" (ngSubmit)="onSubmit()" class="auth-form">
+      <div class="form-field">
+        <label for="firstName">First Name</label>
+        <input pInputText id="firstName" formControlName="firstName" placeholder="Enter your first name" class="w-full" />
+      </div>
+      <div class="form-field">
+        <label for="lastName">Last Name</label>
+        <input pInputText id="lastName" formControlName="lastName" placeholder="Enter your last name" class="w-full" />
+      </div>
+      <div class="form-field">
+        <label for="signup-email">Email</label>
+        <input pInputText id="signup-email" formControlName="email" type="email" placeholder="Enter your email" class="w-full" />
+      </div>
+      <div class="form-field">
+        <label for="signup-password">Password</label>
+        <p-password id="signup-password" formControlName="password" [toggleMask]="true" placeholder="Enter your password" styleClass="w-full" inputStyleClass="w-full"></p-password>
+      </div>
+      <div class="form-actions">
+        <p-button type="submit" label="Sign Up" [loading]="isSubmitting()" styleClass="w-full"></p-button>
+      </div>
+      <div class="form-footer">
+        Already have an account? <a (click)="switchMode()">Sign in</a>
+      </div>
+    </form>
+  }
+</app-modal>

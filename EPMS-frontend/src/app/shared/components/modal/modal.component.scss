@@ -11,13 +11,21 @@
 
 .modal-container {
   width: 90vw;
-  height: 90vh;
+  max-width: 500px;
+  max-height: 90vh;
   background: #fff;
   border-radius: 16px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
   box-shadow: 0 24px 64px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease-out;
+
+  &.large {
+    width: 90vw;
+    height: 90vh;
+    max-width: 1400px;
+  }
 }
 
 .modal-header {

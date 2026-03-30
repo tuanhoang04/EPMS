@@ -1,11 +1,12 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, effect, OnInit, signal } from '@angular/core';
 import { HeaderComponent } from '../../../../shared/components/header/Header.component';
 import { ModalComponent } from '../../../../shared/components/modal/modal.component';
 import { AddSubjectComponent } from '../../components/add-subject/add-subject.component';
 import { SubjectService, SubjectResponse, SubjectPage } from '../../services/subject.service';
 import { ButtonModule } from 'primeng/button';
 import { PaginatorModule } from 'primeng/paginator';
+import { AuthService } from '../../../../core/services/auth.service';
 
 @Component({
   selector: 'app-homepage',
@@ -21,53 +22,64 @@ import { PaginatorModule } from 'primeng/paginator';
   styleUrl: './homepage.scss',
 })
 export class Homepage implements OnInit {
-  page: SubjectPage | null = null;
-  loading = false;
+  page = signal<SubjectPage | null>(null);
+  loading = signal(false);
 
-  viewMode: 'grid' | 'list' = 'grid';
-  showAddModal = false;
+  viewMode = signal<'grid' | 'list'>('grid');
+  showAddModal = signal(false);
 
-  pageIndex = 0;
-  pageSize = 16;
+  pageIndex = signal(0);
+  pageSize = signal(16);
   readonly pageSizeOptions = [8, 16, 24, 32];
 
-  constructor(private subjectService: SubjectService) {}
+  constructor(
+    private subjectService: SubjectService,
+    private authService: AuthService
+  ) {
+    effect(() => {
+      if (this.authService.isAuthenticated()) {
+        this.loadSubjects();
+      }
+    });
+  }
 
   ngOnInit() {
-    this.loadSubjects();
+    if (this.authService.isAuthenticated()) {
+      this.loadSubjects();
+    }
   }
 
   loadSubjects() {
-    this.loading = true;
-    this.subjectService.getAll(this.pageIndex, this.pageSize).subscribe({
+    this.loading.set(true);
+    this.subjectService.getAll(this.pageIndex(), this.pageSize()).subscribe({
       next: (data) => {
-        this.page = data;
-        this.loading = false;
+        this.page.set(data);
+        this.loading.set(false);
       },
       error: () => {
-        this.loading = false;
+        this.loading.set(false);
       }
     });
   }
 
   onPageChange(event: { page?: number; rows?: number }) {
-    this.pageIndex = event.page ?? 0;
-    this.pageSize = event.rows ?? this.pageSize;
+    this.pageIndex.set(event.page ?? 0);
+    this.pageSize.set(event.rows ?? this.pageSize());
     this.loadSubjects();
   }
 
   toggleView() {
-    this.viewMode = this.viewMode === 'grid' ? 'list' : 'grid';
+    this.viewMode.set(this.viewMode() === 'grid' ? 'list' : 'grid');
   }
 
   onSubjectSaved() {
-    this.showAddModal = false;
-    this.pageIndex = 0;
+    this.showAddModal.set(false);
+    this.pageIndex.set(0);
     this.loadSubjects();
   }
 
   onModalClosed() {
-    this.showAddModal = false;
+    this.showAddModal.set(false);
   }
 
   getSubjectImage(subject: SubjectResponse): string {

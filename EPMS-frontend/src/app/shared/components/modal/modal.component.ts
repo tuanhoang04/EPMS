@@ -11,9 +11,20 @@ import { ButtonModule } from 'primeng/button';
 export class ModalComponent {
   @Input() visible = false;
   @Input() title = '';
+  @Input() closable = true;
+  @Input() size: 'default' | 'large' = 'default';
+  @Input() closeOnBackdrop = false;
   @Output() closed = new EventEmitter<void>();
 
   close() {
-    this.closed.emit();
+    if (this.closable) {
+      this.closed.emit();
+    }
+  }
+
+  onBackdropClick(event: MouseEvent) {
+    if (this.closable && this.closeOnBackdrop && (event.target as HTMLElement).classList.contains('modal-backdrop')) {
+      this.close();
+    }
   }
 }

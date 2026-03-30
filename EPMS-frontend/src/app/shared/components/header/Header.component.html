@@ -1,6 +1,6 @@
 <header class="app-header">
   <!-- Left: Page Title -->
-  <span class="header-title">{{ pageTitle }}</span>
+  <span class="header-title" (click)="onHome()" style="cursor: pointer">{{ pageTitle }}</span>
 
   <!-- Right: Profile Icon + Overlay Menu -->
   <div class="header-actions">
@@ -23,3 +23,19 @@
     />
   </div>
 </header>
+
+<app-auth-modal
+  [visible]="authModalVisible()"
+  [mode]="authModalMode()"
+  (visibleChange)="authModalVisible.set($event)"
+/>
+
+<app-modal
+  [visible]="profileModalVisible()"
+  (closed)="profileModalVisible.set(false)"
+  title="User Profile"
+  size="large"
+  [closeOnBackdrop]="true"
+>
+  <app-profile (close)="profileModalVisible.set(false)" />
+</app-modal>
