@@ -26,7 +26,7 @@ public class TemplatePart extends BaseEntity {
     private Template template;
 
     @OneToMany(mappedBy = "templatePart")
-    private TemplatePartDifficulty templatePartDifficulty;
+    private List<TemplatePartDifficulty> templatePartDifficulties;
 
     @ManyToMany
     @JoinTable(
