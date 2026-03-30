@@ -49,7 +49,17 @@ public class SubjectService {
         subject.setDescription(request.getDescription());
         subject.setUser(user);
 
-        return mapToResponse(subjectRepository.save(subject));
+        Subject savedSubject = subjectRepository.saveAndFlush(subject);
+
+        return SubjectResponse.builder()
+                .id(savedSubject.getId())
+                .name(savedSubject.getName())
+                .description(savedSubject.getDescription())
+                .topicCount(0)
+                .questionCount(0)
+                .createdAt(savedSubject.getCreatedAt())
+                .updatedAt(savedSubject.getUpdatedAt())
+                .build();
     }
 
     public SubjectResponse updateSubject(UUID id, SubjectRequest request) {
@@ -59,7 +69,7 @@ public class SubjectService {
         subject.setName(request.getName());
         subject.setDescription(request.getDescription());
 
-        return mapToResponse(subjectRepository.save(subject));
+        return mapToResponse(subjectRepository.saveAndFlush(subject));
     }
 
     public void deleteSubject(UUID id) {
