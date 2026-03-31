@@ -1,0 +1,99 @@
+<app-header [pageTitle]="'Questions'"></app-header>
+<div class="questions-wrapper">
+  <div class="questions-container main-layout-container">
+
+    <!-- Filters -->
+    <div class="filters-toolbar">
+      <div class="filter-item">
+        <label>Subject</label>
+        <p-autocomplete
+          [suggestions]="filteredSubjects()"
+          (completeMethod)="searchSubjects($event)"
+          [ngModel]="selectedSubject()"
+          (ngModelChange)="onSubjectChange($event)"
+          optionLabel="name"
+          [dropdown]="true"
+          placeholder="Select a Subject"
+          appendTo="body"
+        ></p-autocomplete>
+      </div>
+
+      <div class="filter-item">
+        <label>Topic</label>
+        <p-autocomplete
+          [suggestions]="filteredTopics()"
+          (completeMethod)="searchTopics($event)"
+          [ngModel]="selectedTopic()"
+          (ngModelChange)="onTopicChange($event)"
+          optionLabel="name"
+          [dropdown]="true"
+          placeholder="Select a Topic"
+          appendTo="body"
+        ></p-autocomplete>
+      </div>
+
+      <div class="filter-item">
+        <label>Difficulty</label>
+        <p-autocomplete
+          [suggestions]="filteredDifficulties()"
+          (completeMethod)="searchDifficulties($event)"
+          [ngModel]="selectedDifficulty()"
+          (ngModelChange)="onDifficultyChange($event)"
+          optionLabel="label"
+          [dropdown]="true"
+          placeholder="Select Difficulty"
+          appendTo="body"
+        ></p-autocomplete>
+      </div>
+    </div>
+
+    <!-- Loading -->
+    @if (loading()) {
+      <div class="loading-state">
+        <i class="pi pi-spin pi-spinner"></i>
+      </div>
+    }
+
+    <!-- Empty state -->
+    @if (!loading() && questions().length === 0) {
+      <div class="empty-state">
+        <i class="pi pi-question-circle"></i>
+        <p>No questions found matching your criteria.</p>
+      </div>
+    }
+
+    @if (!loading() && questions().length > 0) {
+      <div class="question-list">
+        @for (q of questions(); track q.id) {
+          <div class="question-card">
+            <div class="card-header">
+              <p-tag [value]="q.difficulty" [severity]="getDifficultySeverity(q.difficulty)"></p-tag>
+              <div class="meta">
+                <span class="subject">{{ q.subjectName }}</span>
+                <span class="separator">/</span>
+                <span class="topic">{{ q.topicName }}</span>
+              </div>
+            </div>
+            <div class="card-body">
+              <p class="question-text">{{ q.questionText }}</p>
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Pagination -->
+      @if (page() && page()!.totalElements > 0) {
+        <app-pagination
+          [rows]="pageSize()"
+          [totalRecords]="page()!.totalElements"
+          [rowsPerPageOptions]="pageSizeOptions"
+          [first]="pageIndex() * pageSize()"
+          (onPageChange)="onPageChange($event)"
+        ></app-pagination>
+      }
+    }
+
+  </div>
+</div>
+
+<app-bottom-nav></app-bottom-nav>

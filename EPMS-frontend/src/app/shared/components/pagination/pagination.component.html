@@ -1,0 +1,13 @@
+<div class="pagination-wrapper">
+  <div class="main-layout-container">
+    <p-paginator
+      [rows]="rows"
+      [totalRecords]="totalRecords"
+      [rowsPerPageOptions]="rowsPerPageOptions"
+      [first]="first"
+      (onPageChange)="handlePageChange($event)"
+      [showCurrentPageReport]="true"
+      currentPageReportTemplate="{first}–{last} of {totalRecords}"
+    />
+  </div>
+</div>

@@ -1,0 +1,15 @@
+.pagination-wrapper {
+  position: fixed;
+  bottom: 70px; /* Above bottom-nav (height: 70px) */
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: white;
+  border-top: 1px solid #ddd;
+
+  ::ng-deep .p-paginator {
+    background: transparent;
+    border: none;
+    padding: 0.5rem 0;
+  }
+}

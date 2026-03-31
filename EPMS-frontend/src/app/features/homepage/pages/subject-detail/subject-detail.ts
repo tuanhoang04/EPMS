@@ -4,6 +4,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { SubjectService, SubjectResponse } from '../../services/subject.service';
 import { TopicService, TopicResponse } from '../../services/topic.service';
 import { HeaderComponent } from '../../../../shared/components/header/Header.component';
+import { BottomNavComponent } from '../../../../shared/components/bottom-nav/bottom-nav.component';
 import { ButtonModule } from 'primeng/button';
 import { ModalComponent } from '../../../../shared/components/modal/modal.component';
 import { AddSubjectComponent } from '../../components/add-subject/add-subject.component';
@@ -17,6 +18,7 @@ import { ConfirmDialogModule } from 'primeng/confirmdialog';
   imports: [
     CommonModule,
     HeaderComponent,
+    BottomNavComponent,
     ButtonModule,
     ModalComponent,
     AddSubjectComponent,

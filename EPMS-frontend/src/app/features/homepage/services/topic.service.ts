@@ -28,6 +28,10 @@ export class TopicService {
     return this.http.get<TopicResponse[]>(`${this.apiUrl}/subject/${subjectId}`);
   }
 
+  getAll(): Observable<TopicResponse[]> {
+    return this.http.get<TopicResponse[]>(this.apiUrl);
+  }
+
   create(request: TopicRequest): Observable<TopicResponse> {
     return this.http.post<TopicResponse>(this.apiUrl, request);
   }

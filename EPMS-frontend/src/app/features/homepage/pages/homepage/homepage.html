@@ -74,39 +74,19 @@
 
   <!-- Paginator -->
   @if (!loading() && page() && page()!.totalElements > 0) {
-    <p-paginator
+    <app-pagination
       [rows]="pageSize()"
       [totalRecords]="page()!.totalElements"
       [rowsPerPageOptions]="pageSizeOptions"
+      [first]="pageIndex() * pageSize()"
       (onPageChange)="onPageChange($event)"
-      [showCurrentPageReport]="true"
-      currentPageReportTemplate="{first}–{last} of {totalRecords}"
     />
   }
 
 </div>
 
 <!-- Bottom navigation -->
-<div class="bottom-nav">
-  <div class="nav-container main-layout-container">
-    <div class="nav-item active">
-      <i class="pi pi-home"></i>
-      <span>Homepage</span>
-    </div>
-    <div class="nav-item">
-      <i class="pi pi-list"></i>
-      <span>Question</span>
-    </div>
-    <div class="nav-item">
-      <i class="pi pi-table"></i>
-      <span>Template</span>
-    </div>
-    <div class="nav-item">
-      <i class="pi pi-history"></i>
-      <span>Exam history</span>
-    </div>
-  </div>
-</div>
+<app-bottom-nav />
 
 <!-- Add Subject Modal -->
 <app-modal

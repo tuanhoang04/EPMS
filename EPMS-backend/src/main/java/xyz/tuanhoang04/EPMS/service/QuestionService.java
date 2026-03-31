@@ -1,5 +1,7 @@
 package xyz.tuanhoang04.EPMS.service;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,7 +35,7 @@ public class QuestionService {
         this.topicRepository = topicRepository;
     }
 
-    public List<QuestionResponse> getAllQuestions(UUID subjectId, UUID topicId, Difficulty difficulty) {
+    public Page<QuestionResponse> getAllQuestions(UUID subjectId, UUID topicId, Difficulty difficulty, Pageable pageable) {
         Specification<Question> spec = Specification.where(null);
 
         if (subjectId != null) {
@@ -48,9 +50,8 @@ public class QuestionService {
             spec = spec.and((root, query, cb) -> cb.equal(root.get("difficulty"), difficulty));
         }
 
-        return questionRepository.findAll(spec).stream()
-                .map(this::mapToResponse)
-                .collect(Collectors.toList());
+        return questionRepository.findAll(spec, pageable)
+                .map(this::mapToResponse);
     }
 
     public QuestionResponse getQuestionById(UUID id) {

@@ -2,8 +2,10 @@ import { CommonModule } from '@angular/common';
 import { Component, effect, OnInit, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { HeaderComponent } from '../../../../shared/components/header/Header.component';
+import { BottomNavComponent } from '../../../../shared/components/bottom-nav/bottom-nav.component';
 import { ModalComponent } from '../../../../shared/components/modal/modal.component';
 import { AddSubjectComponent } from '../../components/add-subject/add-subject.component';
+import { PaginationComponent } from '../../../../shared/components/pagination/pagination.component';
 import { SubjectService, SubjectResponse, SubjectPage } from '../../services/subject.service';
 import { ButtonModule } from 'primeng/button';
 import { PaginatorModule } from 'primeng/paginator';
@@ -14,10 +16,11 @@ import { AuthService } from '../../../../core/services/auth.service';
   imports: [
     CommonModule,
     HeaderComponent,
+    BottomNavComponent,
     ButtonModule,
-    PaginatorModule,
     ModalComponent,
     AddSubjectComponent,
+    PaginationComponent,
   ],
   templateUrl: './homepage.html',
   styleUrl: './homepage.scss',

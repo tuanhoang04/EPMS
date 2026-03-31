@@ -1,0 +1,36 @@
+<div class="bottom-nav">
+  <div class="nav-container main-layout-container">
+    <div
+      class="nav-item"
+      [class.active]="isActive('/')"
+      (click)="navigateTo('/')"
+    >
+      <i class="pi pi-home"></i>
+      <span>Homepage</span>
+    </div>
+    <div
+      class="nav-item"
+      [class.active]="isActive('/questions')"
+      (click)="navigateTo('/questions')"
+    >
+      <i class="pi pi-list"></i>
+      <span>Question</span>
+    </div>
+    <div
+      class="nav-item"
+      [class.active]="isActive('/template')"
+      (click)="navigateTo('/template')"
+    >
+      <i class="pi pi-table"></i>
+      <span>Template</span>
+    </div>
+    <div
+      class="nav-item"
+      [class.active]="isActive('/history')"
+      (click)="navigateTo('/history')"
+    >
+      <i class="pi pi-history"></i>
+      <span>Exam history</span>
+    </div>
+  </div>
+</div>

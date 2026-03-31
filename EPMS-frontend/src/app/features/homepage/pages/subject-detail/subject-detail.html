@@ -87,26 +87,7 @@
 
 <p-confirmDialog />
 
-<div class="bottom-nav">
-  <div class="nav-container main-layout-container">
-    <div class="nav-item active" (click)="router.navigate(['/'])">
-      <i class="pi pi-home"></i>
-      <span>Homepage</span>
-    </div>
-    <div class="nav-item">
-      <i class="pi pi-list"></i>
-      <span>Question</span>
-    </div>
-    <div class="nav-item">
-      <i class="pi pi-table"></i>
-      <span>Template</span>
-    </div>
-    <div class="nav-item">
-      <i class="pi pi-history"></i>
-      <span>Exam history</span>
-    </div>
-  </div>
-</div>
+<app-bottom-nav />
 
 <app-modal
   [visible]="showEditModal()"
