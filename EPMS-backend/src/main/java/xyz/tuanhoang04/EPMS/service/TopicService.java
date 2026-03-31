@@ -84,6 +84,7 @@ public class TopicService {
                 .name(topic.getName())
                 .description(topic.getDescription())
                 .subjectId(topic.getSubject().getId())
+                .questionCount(topic.getQuestions() != null ? topic.getQuestions().size() : 0)
                 .createdAt(topic.getCreatedAt())
                 .updatedAt(topic.getUpdatedAt())
                 .build();

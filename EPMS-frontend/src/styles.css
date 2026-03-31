@@ -11,3 +11,10 @@
     @apply bg-[#faf9f5] text-black;
   }
 }
+
+.main-layout-container {
+  margin: 0 auto;
+  width: 100%;
+  padding: 0 1rem;
+  box-sizing: border-box;
+}

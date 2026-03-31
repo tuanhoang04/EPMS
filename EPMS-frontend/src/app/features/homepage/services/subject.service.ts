@@ -40,6 +40,10 @@ export class SubjectService {
     return this.http.get<SubjectPage>(this.apiUrl, { params });
   }
 
+  getById(id: string): Observable<SubjectResponse> {
+    return this.http.get<SubjectResponse>(`${this.apiUrl}/${id}`);
+  }
+
   create(request: SubjectRequest): Observable<SubjectResponse> {
     return this.http.post<SubjectResponse>(this.apiUrl, request);
   }

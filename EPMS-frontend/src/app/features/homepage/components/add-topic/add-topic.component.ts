@@ -3,17 +3,18 @@ import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { TextareaModule } from 'primeng/textarea';
-import { SubjectService, SubjectRequest, SubjectResponse } from '../../services/subject.service';
+import { TopicService, TopicRequest, TopicResponse } from '../../services/topic.service';
 
 @Component({
-  selector: 'app-add-subject',
+  selector: 'app-add-topic',
   standalone: true,
   imports: [FormsModule, ButtonModule, InputTextModule, TextareaModule],
-  templateUrl: './add-subject.component.html',
-  styleUrl: './add-subject.component.scss'
+  templateUrl: './add-topic.component.html',
+  styleUrl: './add-topic.component.scss'
 })
-export class AddSubjectComponent implements OnInit {
-  @Input() subjectToEdit: SubjectResponse | null = null;
+export class AddTopicComponent implements OnInit {
+  @Input() subjectId!: string;
+  @Input() topicToEdit: TopicResponse | null = null;
   @Output() saved = new EventEmitter<void>();
   @Output() cancelled = new EventEmitter<void>();
 
@@ -21,26 +22,27 @@ export class AddSubjectComponent implements OnInit {
   description = '';
   saving = false;
 
-  constructor(private subjectService: SubjectService) {}
+  constructor(private topicService: TopicService) {}
 
   ngOnInit() {
-    if (this.subjectToEdit) {
-      this.name = this.subjectToEdit.name;
-      this.description = this.subjectToEdit.description;
+    if (this.topicToEdit) {
+      this.name = this.topicToEdit.name;
+      this.description = this.topicToEdit.description;
     }
   }
 
   save() {
     if (!this.name.trim()) return;
     this.saving = true;
-    const request: SubjectRequest = {
+    const request: TopicRequest = {
       name: this.name.trim(),
-      description: this.description.trim()
+      description: this.description.trim(),
+      subjectId: this.subjectId
     };
 
-    const action = this.subjectToEdit
-      ? this.subjectService.update(this.subjectToEdit.id, request)
-      : this.subjectService.create(request);
+    const action = this.topicToEdit
+      ? this.topicService.update(this.topicToEdit.id, request)
+      : this.topicService.create(request);
 
     action.subscribe({
       next: () => {

@@ -1,0 +1,37 @@
+<div class="add-topic-form">
+  <div class="field">
+    <label for="topic-name">Topic Name <span class="required">*</span></label>
+    <input
+      pInputText
+      id="topic-name"
+      [(ngModel)]="name"
+      placeholder="Enter topic name"
+    />
+  </div>
+
+  <div class="field">
+    <label for="topic-desc">Description</label>
+    <textarea
+      pTextarea
+      id="topic-desc"
+      [(ngModel)]="description"
+      placeholder="Enter description (optional)"
+      rows="5"
+    ></textarea>
+  </div>
+
+  <div class="form-actions">
+    <p-button
+      label="Cancel"
+      severity="secondary"
+      [outlined]="true"
+      (onClick)="cancel()"
+    />
+    <p-button
+      label="Save"
+      [loading]="saving"
+      [disabled]="!name.trim()"
+      (onClick)="save()"
+    />
+  </div>
+</div>

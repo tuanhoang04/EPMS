@@ -1,0 +1,137 @@
+<app-header [pageTitle]="'Subject Detail'"></app-header>
+<div class="detail-wrapper">
+  <div class="detail-container main-layout-container">
+  @if (loading()) {
+    <div class="loading-state">
+      <i class="pi pi-spin pi-spinner"></i>
+    </div>
+  } @else if (subject()) {
+    <div class="header-section">
+      <div class="title-row">
+        <h2>Subject {{ subject()!.name }} Details</h2>
+        <div class="actions">
+          <button
+            pButton
+            icon="pi pi-pencil"
+            [rounded]="true"
+            severity="secondary"
+            (click)="showEditModal.set(true)"
+          ></button>
+          <button
+            pButton
+            icon="pi pi-arrow-left"
+            [text]="true"
+            [rounded]="true"
+            severity="secondary"
+            (click)="router.navigate(['/'])"
+          ></button>
+        </div>
+      </div>
+      <p class="description">{{ subject()!.description || 'No description' }}</p>
+      <div class="meta-info">
+        <span><i class="pi pi-question-circle"></i> {{ subject()!.questionCount }} Questions</span>
+        <span><i class="pi pi-folder"></i> {{ subject()!.topicCount }} Topics</span>
+      </div>
+    </div>
+
+    <div class="topics-section">
+      <div class="section-header">
+        <h3>Topics</h3>
+        <button
+          pButton
+          icon="pi pi-plus"
+          label="Add Topic"
+          [rounded]="true"
+          size="small"
+          (click)="showAddTopicModal.set(true)"
+        ></button>
+      </div>
+
+      <div class="subject-list">
+        @for (topic of topics(); track topic.id) {
+          <div class="list-item">
+            <div class="list-content">
+              <h3>{{ topic.name }}</h3>
+              <p class="meta">{{ topic.questionCount }} Questions</p>
+              <p class="description">{{ topic.description || 'No description' }}</p>
+            </div>
+            <div class="list-actions">
+              <button
+                pButton
+                icon="pi pi-pencil"
+                [text]="true"
+                [rounded]="true"
+                severity="secondary"
+                (click)="openEditTopic(topic)"
+              ></button>
+              <button
+                pButton
+                icon="pi pi-trash"
+                [text]="true"
+                [rounded]="true"
+                severity="danger"
+                (click)="confirmDeleteTopic(topic)"
+              ></button>
+            </div>
+          </div>
+        } @empty {
+          <div class="empty-state">
+            <i class="pi pi-info-circle"></i>
+            <p>No topics available yet.</p>
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>
+
+<p-confirmDialog />
+
+<div class="bottom-nav">
+  <div class="nav-container main-layout-container">
+    <div class="nav-item active" (click)="router.navigate(['/'])">
+      <i class="pi pi-home"></i>
+      <span>Homepage</span>
+    </div>
+    <div class="nav-item">
+      <i class="pi pi-list"></i>
+      <span>Question</span>
+    </div>
+    <div class="nav-item">
+      <i class="pi pi-table"></i>
+      <span>Template</span>
+    </div>
+    <div class="nav-item">
+      <i class="pi pi-history"></i>
+      <span>Exam history</span>
+    </div>
+  </div>
+</div>
+
+<app-modal
+  [visible]="showEditModal()"
+  title="Edit Subject"
+  (closed)="onModalClosed()"
+>
+  <app-add-subject
+    [subjectToEdit]="subject()"
+    (saved)="onSubjectSaved()"
+    (cancelled)="onModalClosed()"
+  />
+</app-modal>
+
+<app-modal
+  [visible]="showAddTopicModal()"
+  [title]="topicToEdit() ? 'Edit Topic' : 'Add Topic'"
+  (closed)="onModalClosed()"
+>
+  @if (showAddTopicModal()) {
+    <app-add-topic
+      [subjectId]="subject()!.id"
+      [topicToEdit]="topicToEdit()"
+      (saved)="onTopicSaved()"
+      (cancelled)="onModalClosed()"
+    />
+  }
+</app-modal>
+</div>

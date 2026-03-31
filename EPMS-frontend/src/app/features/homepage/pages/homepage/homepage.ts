@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, effect, OnInit, signal } from '@angular/core';
+import { Router } from '@angular/router';
 import { HeaderComponent } from '../../../../shared/components/header/Header.component';
 import { ModalComponent } from '../../../../shared/components/modal/modal.component';
 import { AddSubjectComponent } from '../../components/add-subject/add-subject.component';
@@ -34,7 +35,8 @@ export class Homepage implements OnInit {
 
   constructor(
     private subjectService: SubjectService,
-    private authService: AuthService
+    private authService: AuthService,
+    private router: Router
   ) {
     effect(() => {
       if (this.authService.isAuthenticated()) {
@@ -70,6 +72,10 @@ export class Homepage implements OnInit {
 
   toggleView() {
     this.viewMode.set(this.viewMode() === 'grid' ? 'list' : 'grid');
+  }
+
+  goToDetail(id: string) {
+    this.router.navigate(['/subjects', id]);
   }
 
   onSubjectSaved() {

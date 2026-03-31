@@ -15,6 +15,7 @@ public class TopicResponse {
     private String name;
     private String description;
     private UUID subjectId;
+    private int questionCount;
     private OffsetDateTime createdAt;
     private OffsetDateTime updatedAt;
 }

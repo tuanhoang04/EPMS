@@ -1,6 +1,6 @@
 <app-header [pageTitle]="'EPMS homepage'"></app-header>
-
-<div class="homepage-container">
+<div class="homepage-wrapper">
+  <div class="homepage-container main-layout-container">
 
   <!-- Toolbar -->
   <div class="toolbar">
@@ -42,14 +42,14 @@
   @if (!loading() && page() && page()!.content.length > 0 && viewMode() === 'grid') {
     <div class="card-grid">
       @for (subject of page()!.content; track subject.id) {
-        <div class="card">
+        <div class="card" (click)="goToDetail(subject.id)">
           <img [src]="getSubjectImage(subject)" alt="thumbnail" />
           <div class="card-content">
             <h3>{{ subject.name }}</h3>
             <p class="meta">{{ subject.questionCount }} Questions &ndash; {{ subject.topicCount }} Topics</p>
             <small>{{ subject.description || '&nbsp;' }}</small>
           </div>
-          <button pButton icon="pi pi-ellipsis-h" class="menu-btn" [text]="true" severity="secondary"></button>
+          <button pButton icon="pi pi-ellipsis-h" class="menu-btn" [text]="true" severity="secondary" (click)="$event.stopPropagation()"></button>
         </div>
       }
     </div>
@@ -59,14 +59,14 @@
   @if (!loading() && page() && page()!.content.length > 0 && viewMode() === 'list') {
     <div class="subject-list">
       @for (subject of page()!.content; track subject.id) {
-        <div class="list-item">
+        <div class="list-item" (click)="goToDetail(subject.id)">
           <img [src]="getSubjectImage(subject)" alt="thumbnail" class="list-thumb" />
           <div class="list-content">
             <h3>{{ subject.name }}</h3>
             <p class="meta">{{ subject.questionCount }} Questions &ndash; {{ subject.topicCount }} Topics</p>
             <small>{{ subject.description || 'No description' }}</small>
           </div>
-          <button pButton icon="pi pi-ellipsis-h" [text]="true" severity="secondary"></button>
+          <button pButton icon="pi pi-ellipsis-h" [text]="true" severity="secondary" (click)="$event.stopPropagation()"></button>
         </div>
       }
     </div>
@@ -88,21 +88,23 @@
 
 <!-- Bottom navigation -->
 <div class="bottom-nav">
-  <div class="nav-item active">
-    <i class="pi pi-home"></i>
-    <span>Homepage</span>
-  </div>
-  <div class="nav-item">
-    <i class="pi pi-list"></i>
-    <span>Question</span>
-  </div>
-  <div class="nav-item">
-    <i class="pi pi-table"></i>
-    <span>Template</span>
-  </div>
-  <div class="nav-item">
-    <i class="pi pi-history"></i>
-    <span>Exam history</span>
+  <div class="nav-container main-layout-container">
+    <div class="nav-item active">
+      <i class="pi pi-home"></i>
+      <span>Homepage</span>
+    </div>
+    <div class="nav-item">
+      <i class="pi pi-list"></i>
+      <span>Question</span>
+    </div>
+    <div class="nav-item">
+      <i class="pi pi-table"></i>
+      <span>Template</span>
+    </div>
+    <div class="nav-item">
+      <i class="pi pi-history"></i>
+      <span>Exam history</span>
+    </div>
   </div>
 </div>
 
@@ -116,4 +118,5 @@
     (saved)="onSubjectSaved()"
     (cancelled)="onModalClosed()"
   />
-</app-modal>
+  </app-modal>
+</div>
