@@ -1,0 +1,242 @@
+<app-modal
+  title="Add new questions"
+  size="large"
+  [visible]="visible"
+  saveLabel="Save"
+  [saveDisabled]="!canSave"
+  [saveSaving]="saving"
+  (saveClicked)="save()"
+  (closed)="close()"
+>
+  <!-- Hints -->
+  <div class="aqm-hints">
+    <p><strong>Hint 1:</strong> If Subject and Topic have nothing to choose, create them at Homepage.</p>
+    <p><strong>Hint 2:</strong> Each time you fill in a valid question, a new question form will be created.</p>
+  </div>
+
+  <!-- Subject / Topic selectors -->
+  <div class="aqm-topic-bar">
+    <div class="aqm-topic-field">
+      <label>Subject</label>
+      <p-autocomplete
+        [suggestions]="filteredSubjects"
+        (completeMethod)="searchSubjects($event)"
+        [ngModel]="selectedSubject"
+        (ngModelChange)="onSubjectChange($event)"
+        optionLabel="name"
+        [dropdown]="true"
+        placeholder="Select a Subject"
+        appendTo="body"
+        [panelStyle]="autocompletePanelStyle"
+      ></p-autocomplete>
+    </div>
+    <div class="aqm-topic-field">
+      <label>Topic</label>
+      <p-autocomplete
+        [suggestions]="filteredTopics"
+        (completeMethod)="searchTopics($event)"
+        [ngModel]="selectedTopic"
+        (ngModelChange)="onTopicChange($event)"
+        optionLabel="name"
+        [dropdown]="true"
+        placeholder="Select a Topic"
+        appendTo="body"
+        [panelStyle]="autocompletePanelStyle"
+      ></p-autocomplete>
+    </div>
+  </div>
+
+  <!-- Question forms -->
+  <div class="aqm-forms">
+    @for (form of forms; track form.uid; let i = $index) {
+      <div class="aqm-card" [class.valid]="isFormValid(form)">
+
+        <!-- Card header -->
+        <div class="aqm-card-header">
+          <span class="aqm-card-num">{{ i + 1 }}.</span>
+          <div class="aqm-card-actions">
+            <button class="icon-btn" (click)="resetForm(i)" type="button" title="Reset">
+              <i class="pi pi-refresh"></i>
+            </button>
+            <button
+              class="icon-btn danger"
+              (click)="deleteForm(i)"
+              type="button"
+              title="Delete"
+              [disabled]="forms.length === 1"
+            >
+              <i class="pi pi-minus-circle"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="aqm-card-body">
+          <div class="aqm-left">
+
+            <!-- Question text -->
+            <div class="field-group">
+              <label>Question text</label>
+              <input
+                type="text"
+                class="text-input"
+                placeholder="Value"
+                [(ngModel)]="form.questionText"
+                (ngModelChange)="onFieldChange(i)"
+              />
+            </div>
+
+            <!-- Difficulty -->
+            <div class="field-group">
+              <label>Difficulty</label>
+              <div class="radio-row">
+                @for (opt of difficultyOptions; track opt.value) {
+                  <label class="radio-label">
+                    <input
+                      type="radio"
+                      [value]="opt.value"
+                      [(ngModel)]="form.difficulty"
+                      (change)="onFieldChange(i)"
+                      [name]="'difficulty-' + form.uid"
+                    />
+                    {{ opt.label }}
+                  </label>
+                }
+              </div>
+            </div>
+
+            <!-- Question type -->
+            <div class="field-group">
+              <label>Question type</label>
+              <div class="select-wrapper">
+                <select
+                  [(ngModel)]="form.questionType"
+                  (ngModelChange)="onQuestionTypeChange(form)"
+                  class="custom-select"
+                >
+                  @for (opt of questionTypeOptions; track opt.value) {
+                    <option [value]="opt.value">{{ opt.label }}</option>
+                  }
+                </select>
+                <i class="pi pi-chevron-down select-arrow"></i>
+              </div>
+            </div>
+
+            <!-- Dynamic answer section -->
+            @switch (form.questionType) {
+
+              @case ('MULTIPLE_CHOICE') {
+                <div class="field-group">
+                  <label>Question choices</label>
+                  <div class="choices-list">
+                    @for (choice of form.choices; track $index; let ci = $index) {
+                      <div class="choice-row">
+                        <span class="choice-num">{{ ci + 1 }}.</span>
+                        <input
+                          type="text"
+                          class="text-input choice-input"
+                          placeholder="Value"
+                          [(ngModel)]="choice.value"
+                          (ngModelChange)="onFieldChange(i)"
+                        />
+                        <label class="checkbox-label">
+                          <input
+                            type="checkbox"
+                            [(ngModel)]="choice.isAnswer"
+                            (change)="onFieldChange(i)"
+                          />
+                          Is answer
+                        </label>
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+
+              @case ('TRUE_FALSE') {
+                <div class="field-group">
+                  <label>Question answer</label>
+                  <div class="radio-row">
+                    <label class="radio-label">
+                      <input
+                        type="radio"
+                        value="true"
+                        [(ngModel)]="form.answer"
+                        (change)="onFieldChange(i)"
+                        [name]="'tf-' + form.uid"
+                      />
+                      True
+                    </label>
+                    <label class="radio-label">
+                      <input
+                        type="radio"
+                        value="false"
+                        [(ngModel)]="form.answer"
+                        (change)="onFieldChange(i)"
+                        [name]="'tf-' + form.uid"
+                      />
+                      False
+                    </label>
+                  </div>
+                </div>
+              }
+
+              @case ('GAP_FILLING') {
+                <div class="field-group">
+                  <label>Question answer</label>
+                  <input
+                    type="text"
+                    class="text-input"
+                    placeholder="Value"
+                    [(ngModel)]="form.answer"
+                    (ngModelChange)="onFieldChange(i)"
+                  />
+                </div>
+              }
+
+              @case ('SHORT_ANSWER') {
+                <div class="field-group">
+                  <label>Question answer</label>
+                  <textarea
+                    class="text-input textarea-input"
+                    placeholder="Value"
+                    [(ngModel)]="form.answer"
+                    (ngModelChange)="onFieldChange(i)"
+                    rows="4"
+                  ></textarea>
+                </div>
+              }
+
+            }
+          </div>
+
+          <!-- Image picker -->
+          <div class="aqm-image-picker">
+            <div class="image-preview">
+              @if (form.imageBase64) {
+                <img [src]="form.imageBase64" alt="Question image" />
+              } @else {
+                <i class="pi pi-image"></i>
+              }
+            </div>
+            <p class="image-hint">If your question has an image, upload it here</p>
+            <div class="image-file-row">
+              <input
+                #fileInput
+                type="file"
+                accept="image/*"
+                style="display:none"
+                (change)="onImageSelected($event, form)"
+              />
+              <button class="choose-file-btn" type="button" (click)="triggerFileInput(fileInput)">
+                Choose File
+              </button>
+              <span class="file-name">{{ form.imageFileName || 'No File Chosen' }}</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    }
+  </div>
+
+</app-modal>
