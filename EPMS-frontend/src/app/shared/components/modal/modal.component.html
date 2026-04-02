@@ -3,16 +3,32 @@
     <div class="modal-container" [class.large]="size === 'large'">
       <div class="modal-header">
         <span class="modal-title">{{ title }}</span>
-        @if (closable) {
-          <p-button
-            icon="pi pi-times"
-            [text]="true"
-            [rounded]="true"
-            severity="secondary"
-            (onClick)="close()"
-            ariaLabel="Close"
-          />
-        }
+        <div class="modal-header-actions">
+          @if (saveLabel) {
+            <button
+              class="modal-save-btn"
+              [disabled]="saveDisabled"
+              (click)="saveClicked.emit()"
+              type="button"
+            >
+              @if (saveSaving) {
+                <i class="pi pi-spin pi-spinner"></i>
+              } @else {
+                {{ saveLabel }}
+              }
+            </button>
+          }
+          @if (closable) {
+            <p-button
+              icon="pi pi-times"
+              [text]="true"
+              [rounded]="true"
+              severity="secondary"
+              (onClick)="close()"
+              ariaLabel="Close"
+            />
+          }
+        </div>
       </div>
       <div class="modal-body">
         <ng-content />

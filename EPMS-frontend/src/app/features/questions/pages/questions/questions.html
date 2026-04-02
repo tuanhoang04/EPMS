@@ -1,4 +1,13 @@
 <app-header [pageTitle]="'Questions'"></app-header>
+
+<app-add-question-modal
+  [visible]="showAddModal()"
+  [preSelectedSubjectId]="selectedSubject()?.id ?? null"
+  [preSelectedTopicId]="selectedTopic()?.id ?? null"
+  (closed)="showAddModal.set(false)"
+  (saved)="onModalSaved()"
+></app-add-question-modal>
+
 <div class="questions-wrapper">
   <div class="questions-container main-layout-container">
 
@@ -95,5 +104,10 @@
 
   </div>
 </div>
+
+<!-- FAB: Add question -->
+<button class="add-question-fab" (click)="openAddModal()" type="button" title="Add new questions">
+  <i class="pi pi-plus"></i>
+</button>
 
 <app-bottom-nav></app-bottom-nav>

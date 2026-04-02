@@ -40,11 +40,16 @@ export class HeaderComponent implements OnInit {
 
   constructor() {
     effect(() => {
-      if (!this.authService.isAuthenticated()) {
-        this.authModalMode.set('login');
-        this.authModalVisible.set(true);
-      } else {
-        this.authModalVisible.set(false);
+      const isInitialLoading = this.authService.isInitialLoading();
+      const isAuthenticated = this.authService.isAuthenticated();
+
+      if (!isInitialLoading) {
+        if (!isAuthenticated) {
+          this.authModalMode.set('login');
+          this.authModalVisible.set(true);
+        } else {
+          this.authModalVisible.set(false);
+        }
       }
     });
 

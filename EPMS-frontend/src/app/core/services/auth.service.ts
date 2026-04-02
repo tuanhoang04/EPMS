@@ -14,6 +14,7 @@ export class AuthService {
 
   currentUser = signal<UserInfo | null>(null);
   isAuthenticated = signal<boolean>(false);
+  isInitialLoading = signal<boolean>(false);
 
   constructor(private http: HttpClient) {
     if (isPlatformBrowser(this.platformId)) {
@@ -24,15 +25,18 @@ export class AuthService {
   private loadUserFromStorage() {
     const token = localStorage.getItem(this.TOKEN_KEY);
     if (token) {
+      this.isInitialLoading.set(true);
       this.http.get<UserInfo>(`${this.apiUrl}/me`, {
         headers: { Authorization: `Bearer ${token}` }
       }).subscribe({
         next: (user) => {
           this.currentUser.set(user);
           this.isAuthenticated.set(true);
+          this.isInitialLoading.set(false);
         },
         error: () => {
           this.logout();
+          this.isInitialLoading.set(false);
         }
       });
     }

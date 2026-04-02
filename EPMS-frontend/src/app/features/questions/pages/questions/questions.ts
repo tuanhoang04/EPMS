@@ -7,6 +7,7 @@ import { PaginationComponent } from '../../../../shared/components/pagination/pa
 import { QuestionService, QuestionResponse, Difficulty, QuestionPage } from '../../services/question.service';
 import { SubjectService, SubjectResponse } from '../../../homepage/services/subject.service';
 import { TopicService, TopicResponse } from '../../../homepage/services/topic.service';
+import { AddQuestionModalComponent } from '../../components/add-question-modal/add-question-modal.component';
 import { AutoCompleteModule, AutoCompleteCompleteEvent } from 'primeng/autocomplete';
 import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
@@ -20,6 +21,7 @@ import { TagModule } from 'primeng/tag';
     HeaderComponent,
     BottomNavComponent,
     PaginationComponent,
+    AddQuestionModalComponent,
     AutoCompleteModule,
     ButtonModule,
     TagModule,
@@ -38,6 +40,7 @@ export class QuestionsPage implements OnInit {
   topics = signal<TopicResponse[]>([]);
   allTopics = signal<TopicResponse[]>([]);
   loading = signal(false);
+  showAddModal = signal(false);
 
   selectedSubject = signal<any | null>(null);
   selectedTopic = signal<any | null>(null);
@@ -182,6 +185,14 @@ export class QuestionsPage implements OnInit {
     this.filteredDifficulties.set(
       this.difficultyOptions.filter(d => d.label.toLowerCase().includes(query))
     );
+  }
+
+  openAddModal() {
+    this.showAddModal.set(true);
+  }
+
+  onModalSaved() {
+    this.loadQuestions();
   }
 
   getDifficultySeverity(difficulty: Difficulty): "success" | "secondary" | "info" | "warn" | "danger" | "contrast" | undefined {
