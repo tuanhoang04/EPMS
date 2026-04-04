@@ -1,5 +1,7 @@
 package xyz.tuanhoang04.EPMS.repository;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import xyz.tuanhoang04.EPMS.entity.Template;
 
@@ -7,6 +9,7 @@ import java.util.List;
 import java.util.UUID;
 
 public interface TemplateRepository extends JpaRepository<Template, UUID> {
+    Page<Template> findBySubjectId(UUID subjectId, Pageable pageable);
     List<Template> findBySubjectId(UUID subjectId);
     long countBySubjectUserId(UUID userId);
     List<Template> findByTitleContainingIgnoreCase(String title);

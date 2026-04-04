@@ -23,15 +23,9 @@
     </div>
   </div>
 
-  <!-- Loading state -->
-  @if (loading()) {
-    <div class="loading-state">
-      <i class="pi pi-spin pi-spinner"></i>
-    </div>
-  }
 
   <!-- Empty state -->
-  @if (!loading() && page() && page()!.totalElements === 0) {
+  @if (page() && page()!.totalElements === 0) {
     <div class="empty-state">
       <i class="pi pi-book"></i>
       <p>No subjects yet. Click <strong>+</strong> to add one.</p>
@@ -39,10 +33,10 @@
   }
 
   <!-- Grid view -->
-  @if (!loading() && page() && page()!.content.length > 0 && viewMode() === 'grid') {
-    <div class="card-grid">
+  @if (page() && page()!.content.length > 0 && viewMode() === 'grid') {
+    <div class="app-card-grid">
       @for (subject of page()!.content; track subject.id) {
-        <div class="card" (click)="goToDetail(subject.id)">
+        <div class="card app-card" (click)="goToDetail(subject.id)">
           <img [src]="getSubjectImage(subject)" alt="thumbnail" />
           <div class="card-content">
             <h3>{{ subject.name }}</h3>
@@ -56,10 +50,10 @@
   }
 
   <!-- List view -->
-  @if (!loading() && page() && page()!.content.length > 0 && viewMode() === 'list') {
-    <div class="subject-list">
+  @if (page() && page()!.content.length > 0 && viewMode() === 'list') {
+    <div class="app-card-list-container">
       @for (subject of page()!.content; track subject.id) {
-        <div class="list-item" (click)="goToDetail(subject.id)">
+        <div class="list-item app-card-list" (click)="goToDetail(subject.id)">
           <img [src]="getSubjectImage(subject)" alt="thumbnail" class="list-thumb" />
           <div class="list-content">
             <h3>{{ subject.name }}</h3>
@@ -73,7 +67,7 @@
   }
 
   <!-- Paginator -->
-  @if (!loading() && page() && page()!.totalElements > 0) {
+  @if (page() && page()!.totalElements > 0) {
     <app-pagination
       [rows]="pageSize()"
       [totalRecords]="page()!.totalElements"

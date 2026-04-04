@@ -8,6 +8,7 @@ import { QuestionService, QuestionResponse, Difficulty, QuestionPage } from '../
 import { SubjectService, SubjectResponse } from '../../../homepage/services/subject.service';
 import { TopicService, TopicResponse } from '../../../homepage/services/topic.service';
 import { AddQuestionModalComponent } from '../../components/add-question-modal/add-question-modal.component';
+import { QuestionDetailModalComponent } from '../../components/question-detail-modal/question-detail-modal.component';
 import { AutoCompleteModule, AutoCompleteCompleteEvent } from 'primeng/autocomplete';
 import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
@@ -22,6 +23,7 @@ import { TagModule } from 'primeng/tag';
     BottomNavComponent,
     PaginationComponent,
     AddQuestionModalComponent,
+    QuestionDetailModalComponent,
     AutoCompleteModule,
     ButtonModule,
     TagModule,
@@ -35,12 +37,14 @@ export class QuestionsPage implements OnInit {
   pageIndex = signal(0);
   pageSize = signal(10);
   pageSizeOptions = [10, 20, 50];
+  viewMode = signal<'grid' | 'list'>('list');
 
   subjects = signal<SubjectResponse[]>([]);
   topics = signal<TopicResponse[]>([]);
   allTopics = signal<TopicResponse[]>([]);
-  loading = signal(false);
   showAddModal = signal(false);
+  showDetailModal = signal(false);
+  selectedDetailQuestion = signal<QuestionResponse | null>(null);
 
   selectedSubject = signal<any | null>(null);
   selectedTopic = signal<any | null>(null);
@@ -62,6 +66,13 @@ export class QuestionsPage implements OnInit {
   ) {
     // Reload questions when any filter changes
     effect(() => {
+      // Access signals to ensure tracking
+      this.selectedSubject();
+      this.selectedTopic();
+      this.selectedDifficulty();
+      this.pageIndex();
+      this.pageSize();
+
       this.loadQuestions();
     }, { allowSignalWrites: true });
   }
@@ -69,7 +80,7 @@ export class QuestionsPage implements OnInit {
   ngOnInit() {
     this.loadSubjects();
     this.loadAllTopics();
-    this.loadQuestions();
+    // loadQuestions() is called automatically by the effect in constructor
   }
 
   loadSubjects() {
@@ -94,25 +105,20 @@ export class QuestionsPage implements OnInit {
   }
 
   loadQuestions() {
-    this.loading.set(true);
     const subjectId = this.selectedSubject()?.id;
     const topicId = this.selectedTopic()?.id;
-    const difficulty = this.selectedDifficulty()?.value;
+    const difficultyValue = this.selectedDifficulty()?.value;
 
     this.questionService.getAll(
       subjectId || undefined,
       topicId || undefined,
-      difficulty || undefined,
+      difficultyValue || undefined,
       this.pageIndex(),
       this.pageSize()
     ).subscribe({
       next: (data) => {
         this.page.set(data);
         this.questions.set(data.content);
-        this.loading.set(false);
-      },
-      error: () => {
-        this.loading.set(false);
       }
     });
   }
@@ -120,13 +126,13 @@ export class QuestionsPage implements OnInit {
   onPageChange(event: { page: number; rows: number }) {
     this.pageIndex.set(event.page);
     this.pageSize.set(event.rows);
-    this.loadQuestions();
   }
 
   onSubjectChange(event: any) {
     const subject = event && typeof event === 'object' && 'id' in event ? event : null;
     this.selectedSubject.set(subject);
     this.selectedTopic.set(null); // Clear topic when subject changed
+    this.pageIndex.set(0); // Reset to first page
 
     if (subject) {
       this.topicService.getBySubjectId(subject.id).subscribe({
@@ -144,6 +150,8 @@ export class QuestionsPage implements OnInit {
   onTopicChange(event: any) {
     const topic = event && typeof event === 'object' && 'id' in event ? event : null;
     this.selectedTopic.set(topic);
+    this.pageIndex.set(0); // Reset to first page
+
     if (topic) {
       if (!this.selectedSubject() || topic.subjectId !== this.selectedSubject().id) {
         const parentSubject = this.subjects().find(s => s.id === topic.subjectId);
@@ -162,8 +170,11 @@ export class QuestionsPage implements OnInit {
   }
 
   onDifficultyChange(event: any) {
-    const difficulty = event && typeof event === 'object' && 'label' in event ? event : null;
+    // (onSelect) passes AutoCompleteSelectEvent { value: item, originalEvent }; (onClear) passes null
+    const item = event && 'originalEvent' in event ? event.value : event;
+    const difficulty = item && typeof item === 'object' && 'value' in item ? item : null;
     this.selectedDifficulty.set(difficulty);
+    this.pageIndex.set(0);
   }
 
   searchSubjects(event: AutoCompleteCompleteEvent) {
@@ -187,8 +198,17 @@ export class QuestionsPage implements OnInit {
     );
   }
 
+  toggleView() {
+    this.viewMode.set(this.viewMode() === 'grid' ? 'list' : 'grid');
+  }
+
   openAddModal() {
     this.showAddModal.set(true);
+  }
+
+  openDetail(question: QuestionResponse) {
+    this.selectedDetailQuestion.set(question);
+    this.showDetailModal.set(true);
   }
 
   onModalSaved() {
@@ -203,5 +223,32 @@ export class QuestionsPage implements OnInit {
       case Difficulty.ADVANCED: return 'danger';
       default: return 'secondary';
     }
+  }
+
+  getQuestionTypeLabel(type: string) {
+    switch (type) {
+      case 'MULTIPLE_CHOICE_ONE_RIGHT_CHOICE': return 'Single Choice';
+      case 'MULTIPLE_CHOICE_MULTIPLE_RIGHT_CHOICE': return 'Multiple Choice';
+      case 'TRUE_FALSE': return 'True / False';
+      case 'GAP_FILLING': return 'Gap Filling';
+      case 'SHORT_ANSWER': return 'Short Answer';
+      default: return type;
+    }
+  }
+
+  getFormattedAnswer(q: QuestionResponse): string {
+    if (q.questionType === 'MULTIPLE_CHOICE_ONE_RIGHT_CHOICE' || q.questionType === 'MULTIPLE_CHOICE_MULTIPLE_RIGHT_CHOICE') {
+      if (!q.questionChoices) return 'No choices';
+      try {
+        const choices = JSON.parse(q.questionChoices) as { value: string; isAnswer: boolean }[];
+        return choices.filter(c => c.isAnswer).map(c => c.value).join(', ');
+      } catch (e) {
+        return 'Invalid choices format';
+      }
+    }
+    if (q.questionType === 'TRUE_FALSE') {
+      return q.questionAnswer === 'true' ? 'True' : 'False';
+    }
+    return q.questionAnswer;
   }
 }

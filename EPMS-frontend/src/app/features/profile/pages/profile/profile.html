@@ -55,16 +55,12 @@
     <div class="card statistics-card">
       <div class="card-header">
         <h2>System Statistics</h2>
-        <button class="refresh-btn" (click)="fetchStatistics()" [disabled]="loading()">
-          <span class="icon" [class.spinning]="loading()">↻</span>
+        <button class="refresh-btn" (click)="fetchStatistics()">
+          <span class="icon">↻</span>
         </button>
       </div>
       <div class="card-body">
-        <div *ngIf="loading()" class="loading-state">
-          Loading statistics...
-        </div>
-
-        <div *ngIf="!loading() && statistics()" class="stats-grid">
+        <div *ngIf="statistics()" class="stats-grid">
           <div class="stat-item">
             <span class="stat-value">{{ statistics()?.subjectCount }}</span>
             <span class="stat-label">Subjects</span>

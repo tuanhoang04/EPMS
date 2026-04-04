@@ -1,0 +1,211 @@
+<app-modal
+  [title]="'Question Detail'"
+  size="large"
+  [visible]="visible"
+  saveLabel="Save Changes"
+  [saveSaving]="saving()"
+  (saveClicked)="save()"
+  (closed)="close()"
+>
+  <div class="qdm-container">
+    <div class="qdm-header">
+      <span class="qdm-id">ID: {{ question?.id }}</span>
+      <button class="delete-btn" (click)="delete()" [disabled]="deleting()" type="button">
+        <i class="pi" [class.pi-trash]="!deleting()" [class.pi-spin]="deleting()" [class.pi-spinner]="deleting()"></i>
+        Delete Question
+      </button>
+    </div>
+
+    <div class="qdm-body">
+      <div class="qdm-left">
+        <!-- Subject / Topic selectors -->
+        <div class="qdm-row">
+          <div class="field-group">
+            <label>Subject</label>
+            <p-autocomplete
+              [suggestions]="filteredSubjects()"
+              (completeMethod)="searchSubjects($event)"
+              [ngModel]="selectedSubject()"
+              (ngModelChange)="onSubjectChange($event)"
+              optionLabel="name"
+              [dropdown]="true"
+              [completeOnFocus]="true"
+              [forceSelection]="true"
+              placeholder="Select a Subject"
+              appendTo="body"
+            ></p-autocomplete>
+          </div>
+          <div class="field-group">
+            <label>Topic</label>
+            <p-autocomplete
+              [suggestions]="filteredTopics()"
+              (completeMethod)="searchTopics($event)"
+              [ngModel]="selectedTopic()"
+              (ngModelChange)="onTopicChange($event)"
+              optionLabel="name"
+              [dropdown]="true"
+              [completeOnFocus]="true"
+              [forceSelection]="true"
+              placeholder="Select a Topic"
+              appendTo="body"
+            ></p-autocomplete>
+          </div>
+        </div>
+
+        <!-- Question text -->
+        <div class="field-group">
+          <label>Question text</label>
+          <input
+            type="text"
+            class="text-input"
+            placeholder="Question content"
+            [ngModel]="questionText()"
+            (ngModelChange)="questionText.set($event)"
+          />
+        </div>
+
+        <!-- Difficulty -->
+        <div class="field-group">
+          <label>Difficulty</label>
+          <div class="radio-row">
+            @for (opt of difficultyOptions; track opt.value) {
+              <label class="radio-label">
+                <input
+                  type="radio"
+                  [value]="opt.value"
+                  [ngModel]="difficulty()"
+                  (ngModelChange)="difficulty.set($event)"
+                  name="difficulty"
+                />
+                {{ opt.label }}
+              </label>
+            }
+          </div>
+        </div>
+
+        <!-- Question type -->
+        <div class="field-group">
+          <label>Question type</label>
+          <div class="select-wrapper">
+            <select
+              [ngModel]="questionType()"
+              (ngModelChange)="questionType.set($event); onQuestionTypeChange()"
+              class="custom-select"
+            >
+              @for (opt of questionTypeOptions; track opt.value) {
+                <option [value]="opt.value">{{ opt.label }}</option>
+              }
+            </select>
+            <i class="pi pi-chevron-down select-arrow"></i>
+          </div>
+        </div>
+
+        <!-- Dynamic answer section -->
+
+        <!-- Multiple choice -->
+        @if (questionType() === 'MULTIPLE_CHOICE_ONE_RIGHT_CHOICE' || questionType() === 'MULTIPLE_CHOICE_MULTIPLE_RIGHT_CHOICE') {
+          <div class="field-group">
+            <label>Question choices</label>
+            <div class="choices-list">
+              @for (choice of choices(); track $index; let ci = $index) {
+                <div class="choice-row">
+                  <span class="choice-num">{{ ci + 1 }}.</span>
+                  <input
+                    type="text"
+                    class="text-input choice-input"
+                    placeholder="Choice value"
+                    [(ngModel)]="choice.value"
+                  />
+                  @if (questionType() === 'MULTIPLE_CHOICE_ONE_RIGHT_CHOICE') {
+                    <label class="radio-label">
+                      <input
+                        type="radio"
+                        [checked]="choice.isAnswer"
+                        (change)="onChoiceAnswerChange(ci)"
+                        name="choice-answer"
+                      />
+                      Is answer
+                    </label>
+                  } @else {
+                    <label class="checkbox-label">
+                      <input
+                        type="checkbox"
+                        [checked]="choice.isAnswer"
+                        (change)="onChoiceAnswerChange(ci)"
+                      />
+                      Is answer
+                    </label>
+                  }
+                  <button
+                    class="icon-btn danger"
+                    type="button"
+                    (click)="removeChoice(ci)"
+                    [disabled]="choices.length <= 2"
+                  >
+                    <i class="pi pi-times"></i>
+                  </button>
+                </div>
+              }
+            </div>
+            <button class="add-choice-btn" type="button" (click)="addChoice()">
+              <i class="pi pi-plus"></i> Add choice
+            </button>
+          </div>
+        }
+
+        @switch (questionType()) {
+          @case ('TRUE_FALSE') {
+            <div class="field-group">
+              <label>Question answer</label>
+              <div class="radio-row">
+                <label class="radio-label">
+                  <input type="radio" value="true" [ngModel]="answer()" (ngModelChange)="answer.set($event)" name="tf" /> True
+                </label>
+                <label class="radio-label">
+                  <input type="radio" value="false" [ngModel]="answer()" (ngModelChange)="answer.set($event)" name="tf" /> False
+                </label>
+              </div>
+            </div>
+          }
+          @case ('GAP_FILLING') {
+            <div class="field-group">
+              <label>Question answer</label>
+              <input type="text" class="text-input" placeholder="Answer" [ngModel]="answer()" (ngModelChange)="answer.set($event)" />
+            </div>
+          }
+          @case ('SHORT_ANSWER') {
+            <div class="field-group">
+              <label>Question answer</label>
+              <textarea class="text-input textarea-input" placeholder="Answer" [ngModel]="answer()" (ngModelChange)="answer.set($event)" rows="4"></textarea>
+            </div>
+          }
+        }
+      </div>
+
+      <!-- Image picker -->
+      <div class="qdm-right">
+        <div class="image-preview">
+          @if (imageBase64()) {
+            <img [src]="imageBase64()" alt="Question image" />
+          } @else {
+            <div class="no-image">
+              <i class="pi pi-image"></i>
+              <span>No image uploaded</span>
+            </div>
+          }
+        </div>
+        <div class="image-actions">
+          <input #fileInput type="file" accept="image/*" style="display:none" (change)="onImageSelected($event)" />
+          <button class="upload-btn" type="button" (click)="triggerFileInput(fileInput)">
+            <i class="pi pi-upload"></i> {{ imageBase64() ? 'Change Image' : 'Upload Image' }}
+          </button>
+          @if (imageBase64()) {
+            <button class="remove-img-btn" type="button" (click)="imageBase64.set(null); imageFileName.set(null)">
+              <i class="pi pi-trash"></i> Remove
+            </button>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+</app-modal>

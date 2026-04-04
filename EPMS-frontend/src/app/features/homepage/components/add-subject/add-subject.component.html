@@ -29,8 +29,7 @@
     />
     <p-button
       label="Save"
-      [loading]="saving"
-      [disabled]="!name.trim()"
+      [disabled]="!name.trim() || saving"
       (onClick)="save()"
     />
   </div>

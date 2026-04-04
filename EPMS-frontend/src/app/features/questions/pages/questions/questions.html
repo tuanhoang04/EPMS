@@ -8,10 +8,18 @@
   (saved)="onModalSaved()"
 ></app-add-question-modal>
 
+<app-question-detail-modal
+  [visible]="showDetailModal()"
+  [question]="selectedDetailQuestion()"
+  (closed)="showDetailModal.set(false)"
+  (saved)="onModalSaved()"
+  (deleted)="onModalSaved()"
+></app-question-detail-modal>
+
 <div class="questions-wrapper">
   <div class="questions-container main-layout-container">
 
-    <!-- Filters -->
+    <!-- Filters + view toggle -->
     <div class="filters-toolbar">
       <div class="filter-item">
         <label>Subject</label>
@@ -19,9 +27,12 @@
           [suggestions]="filteredSubjects()"
           (completeMethod)="searchSubjects($event)"
           [ngModel]="selectedSubject()"
-          (ngModelChange)="onSubjectChange($event)"
+          (onSelect)="onSubjectChange($event)"
+          (onClear)="onSubjectChange(null)"
           optionLabel="name"
           [dropdown]="true"
+          [forceSelection]="true"
+          [completeOnFocus]="true"
           placeholder="Select a Subject"
           appendTo="body"
         ></p-autocomplete>
@@ -33,9 +44,12 @@
           [suggestions]="filteredTopics()"
           (completeMethod)="searchTopics($event)"
           [ngModel]="selectedTopic()"
-          (ngModelChange)="onTopicChange($event)"
+          (onSelect)="onTopicChange($event)"
+          (onClear)="onTopicChange(null)"
           optionLabel="name"
           [dropdown]="true"
+          [forceSelection]="true"
+          [completeOnFocus]="true"
           placeholder="Select a Topic"
           appendTo="body"
         ></p-autocomplete>
@@ -47,48 +61,101 @@
           [suggestions]="filteredDifficulties()"
           (completeMethod)="searchDifficulties($event)"
           [ngModel]="selectedDifficulty()"
-          (ngModelChange)="onDifficultyChange($event)"
+          (onSelect)="onDifficultyChange($event)"
+          (onClear)="onDifficultyChange(null)"
           optionLabel="label"
           [dropdown]="true"
+          [forceSelection]="true"
+          [completeOnFocus]="true"
           placeholder="Select Difficulty"
           appendTo="body"
         ></p-autocomplete>
       </div>
+
+      <div class="filter-view-toggle">
+        <button
+          pButton
+          [icon]="viewMode() === 'grid' ? 'pi pi-list' : 'pi pi-th-large'"
+          [text]="true"
+          [rounded]="true"
+          severity="secondary"
+          (click)="toggleView()"
+        ></button>
+      </div>
     </div>
 
-    <!-- Loading -->
-    @if (loading()) {
-      <div class="loading-state">
-        <i class="pi pi-spin pi-spinner"></i>
-      </div>
-    }
-
     <!-- Empty state -->
-    @if (!loading() && questions().length === 0) {
+    @if (questions().length === 0) {
       <div class="empty-state">
         <i class="pi pi-question-circle"></i>
         <p>No questions found matching your criteria.</p>
       </div>
     }
 
-    @if (!loading() && questions().length > 0) {
-      <div class="question-list">
-        @for (q of questions(); track q.id) {
-          <div class="question-card">
-            <div class="card-header">
-              <p-tag [value]="q.difficulty" [severity]="getDifficultySeverity(q.difficulty)"></p-tag>
-              <div class="meta">
+    @if (questions().length > 0) {
+
+      <!-- List view -->
+      @if (viewMode() === 'list') {
+        <div class="app-card-list-container">
+          @for (q of questions(); track q.id) {
+            <div class="question-card app-card-list" (click)="openDetail(q)">
+              <div class="card-header">
+                <div class="tags">
+                  <p-tag [value]="q.difficulty" [severity]="getDifficultySeverity(q.difficulty)"></p-tag>
+                  <p-tag [value]="getQuestionTypeLabel(q.questionType)" severity="secondary"></p-tag>
+                </div>
+                <div class="meta">
+                  <span class="subject">{{ q.subjectName }}</span>
+                  <span class="separator">/</span>
+                  <span class="topic">{{ q.topicName }}</span>
+                </div>
+              </div>
+              <div class="card-body">
+                <div class="card-body-inner">
+                  <div class="card-body-text">
+                    <p class="question-text">{{ q.questionText }}</p>
+                    @if (getFormattedAnswer(q)) {
+                      <div class="answer-section">
+                        <span class="answer-label">Answer: </span>
+                        <span class="answer-text">{{ getFormattedAnswer(q) }}</span>
+                      </div>
+                    }
+                  </div>
+                  @if (q.questionImageBase64) {
+                    <img class="question-list-img" [src]="q.questionImageBase64" alt="Question image" />
+                  }
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Grid view -->
+      @if (viewMode() === 'grid') {
+        <div class="app-card-grid">
+          @for (q of questions(); track q.id) {
+            <div class="question-card question-grid-card app-card" (click)="openDetail(q)">
+              @if (q.questionImageBase64) {
+                <img class="q-grid-img" [src]="q.questionImageBase64" alt="Question image" />
+              }
+              <div class="q-grid-body">
+                <div class="q-grid-tags">
+                  <p-tag [value]="q.difficulty" [severity]="getDifficultySeverity(q.difficulty)"></p-tag>
+                  <p-tag [value]="getQuestionTypeLabel(q.questionType)" severity="secondary"></p-tag>
+                </div>
+                <p class="q-grid-text">{{ q.questionText }}</p>
+              </div>
+              <div class="q-grid-meta">
                 <span class="subject">{{ q.subjectName }}</span>
                 <span class="separator">/</span>
                 <span class="topic">{{ q.topicName }}</span>
               </div>
             </div>
-            <div class="card-body">
-              <p class="question-text">{{ q.questionText }}</p>
-            </div>
-          </div>
-        }
-      </div>
+          }
+        </div>
+      }
+
 
       <!-- Pagination -->
       @if (page() && page()!.totalElements > 0) {

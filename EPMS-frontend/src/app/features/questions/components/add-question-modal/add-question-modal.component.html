@@ -4,7 +4,7 @@
   [visible]="visible"
   saveLabel="Save"
   [saveDisabled]="!canSave"
-  [saveSaving]="saving"
+  [saveSaving]="saving()"
   (saveClicked)="save()"
   (closed)="close()"
 >
@@ -14,41 +14,9 @@
     <p><strong>Hint 2:</strong> Each time you fill in a valid question, a new question form will be created.</p>
   </div>
 
-  <!-- Subject / Topic selectors -->
-  <div class="aqm-topic-bar">
-    <div class="aqm-topic-field">
-      <label>Subject</label>
-      <p-autocomplete
-        [suggestions]="filteredSubjects"
-        (completeMethod)="searchSubjects($event)"
-        [ngModel]="selectedSubject"
-        (ngModelChange)="onSubjectChange($event)"
-        optionLabel="name"
-        [dropdown]="true"
-        placeholder="Select a Subject"
-        appendTo="body"
-        [panelStyle]="autocompletePanelStyle"
-      ></p-autocomplete>
-    </div>
-    <div class="aqm-topic-field">
-      <label>Topic</label>
-      <p-autocomplete
-        [suggestions]="filteredTopics"
-        (completeMethod)="searchTopics($event)"
-        [ngModel]="selectedTopic"
-        (ngModelChange)="onTopicChange($event)"
-        optionLabel="name"
-        [dropdown]="true"
-        placeholder="Select a Topic"
-        appendTo="body"
-        [panelStyle]="autocompletePanelStyle"
-      ></p-autocomplete>
-    </div>
-  </div>
-
   <!-- Question forms -->
   <div class="aqm-forms">
-    @for (form of forms; track form.uid; let i = $index) {
+    @for (form of forms(); track form.uid; let i = $index) {
       <div class="aqm-card" [class.valid]="isFormValid(form)">
 
         <!-- Card header -->
@@ -63,7 +31,7 @@
               (click)="deleteForm(i)"
               type="button"
               title="Delete"
-              [disabled]="forms.length === 1"
+              [disabled]="forms().length === 1"
             >
               <i class="pi pi-minus-circle"></i>
             </button>
@@ -72,6 +40,36 @@
 
         <div class="aqm-card-body">
           <div class="aqm-left">
+
+            <!-- Subject / Topic selectors -->
+            <div class="aqm-topic-row">
+              <div class="field-group">
+                <label>Subject</label>
+                <p-autocomplete
+                  [suggestions]="form.filteredSubjects"
+                  (completeMethod)="searchSubjectsForForm(form, $event)"
+                  [ngModel]="form.selectedSubject"
+                  (ngModelChange)="onSubjectChangeForForm(form, $event)"
+                  optionLabel="name"
+                  [dropdown]="true"
+                  placeholder="Select a Subject"
+                  appendTo="body"
+                ></p-autocomplete>
+              </div>
+              <div class="field-group">
+                <label>Topic</label>
+                <p-autocomplete
+                  [suggestions]="form.filteredTopics"
+                  (completeMethod)="searchTopicsForForm(form, $event)"
+                  [ngModel]="form.selectedTopic"
+                  (ngModelChange)="onTopicChangeForForm(form, $event)"
+                  optionLabel="name"
+                  [dropdown]="true"
+                  placeholder="Select a Topic"
+                  appendTo="body"
+                ></p-autocomplete>
+              </div>
+            </div>
 
             <!-- Question text -->
             <div class="field-group">
@@ -122,35 +120,61 @@
             </div>
 
             <!-- Dynamic answer section -->
-            @switch (form.questionType) {
 
-              @case ('MULTIPLE_CHOICE') {
-                <div class="field-group">
-                  <label>Question choices</label>
-                  <div class="choices-list">
-                    @for (choice of form.choices; track $index; let ci = $index) {
-                      <div class="choice-row">
-                        <span class="choice-num">{{ ci + 1 }}.</span>
-                        <input
-                          type="text"
-                          class="text-input choice-input"
-                          placeholder="Value"
-                          [(ngModel)]="choice.value"
-                          (ngModelChange)="onFieldChange(i)"
-                        />
-                        <label class="checkbox-label">
+            <!-- Multiple choice (shared block for both MC types) -->
+            @if (form.questionType === 'MULTIPLE_CHOICE_ONE_RIGHT_CHOICE' || form.questionType === 'MULTIPLE_CHOICE_MULTIPLE_RIGHT_CHOICE') {
+              <div class="field-group">
+                <label>Question choices</label>
+                <div class="choices-list">
+                  @for (choice of form.choices; track $index; let ci = $index) {
+                    <div class="choice-row">
+                      <span class="choice-num">{{ ci + 1 }}.</span>
+                      <input
+                        type="text"
+                        class="text-input choice-input"
+                        placeholder="Value"
+                        [(ngModel)]="choice.value"
+                        (ngModelChange)="onFieldChange(i)"
+                      />
+                      @if (form.questionType === 'MULTIPLE_CHOICE_ONE_RIGHT_CHOICE') {
+                        <label class="radio-label">
                           <input
-                            type="checkbox"
-                            [(ngModel)]="choice.isAnswer"
-                            (change)="onFieldChange(i)"
+                            type="radio"
+                            [checked]="choice.isAnswer"
+                            (change)="onChoiceAnswerChange(form, ci, i)"
+                            [name]="'choice-answer-' + form.uid"
                           />
                           Is answer
                         </label>
-                      </div>
-                    }
-                  </div>
+                      } @else {
+                        <label class="checkbox-label">
+                          <input
+                            type="checkbox"
+                            [checked]="choice.isAnswer"
+                            (change)="onChoiceAnswerChange(form, ci, i)"
+                          />
+                          Is answer
+                        </label>
+                      }
+                      <button
+                        class="icon-btn danger"
+                        type="button"
+                        (click)="removeChoice(form, ci, i)"
+                        [disabled]="form.choices.length <= 2"
+                        title="Remove choice"
+                      >
+                        <i class="pi pi-times"></i>
+                      </button>
+                    </div>
+                  }
                 </div>
-              }
+                <button class="add-choice-btn" type="button" (click)="addChoice(form, i)">
+                  <i class="pi pi-plus"></i> Add choice
+                </button>
+              </div>
+            }
+
+            @switch (form.questionType) {
 
               @case ('TRUE_FALSE') {
                 <div class="field-group">

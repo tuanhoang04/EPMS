@@ -18,8 +18,10 @@ public class Question extends BaseEntity {
     private String questionImagePath;
 
     @Enumerated(EnumType.STRING)
+    @Column(length = 20)
     private Difficulty difficulty;
     @Enumerated(EnumType.STRING)
+    @Column(length = 50)
     private QuestionType questionType;
 
     @ManyToOne(fetch = FetchType.LAZY)

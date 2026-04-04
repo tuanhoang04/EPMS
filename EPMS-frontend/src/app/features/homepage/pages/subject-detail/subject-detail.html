@@ -1,11 +1,7 @@
 <app-header [pageTitle]="'Subject Detail'"></app-header>
 <div class="detail-wrapper">
   <div class="detail-container main-layout-container">
-  @if (loading()) {
-    <div class="loading-state">
-      <i class="pi pi-spin pi-spinner"></i>
-    </div>
-  } @else if (subject()) {
+  @if (subject()) {
     <div class="header-section">
       <div class="title-row">
         <h2>Subject {{ subject()!.name }} Details</h2>
@@ -37,50 +33,71 @@
     <div class="topics-section">
       <div class="section-header">
         <h3>Topics</h3>
-        <button
-          pButton
-          icon="pi pi-plus"
-          label="Add Topic"
-          [rounded]="true"
-          size="small"
-          (click)="showAddTopicModal.set(true)"
-        ></button>
+        <div class="section-header-actions">
+          <button
+            pButton
+            [icon]="viewMode() === 'grid' ? 'pi pi-list' : 'pi pi-th-large'"
+            [text]="true"
+            [rounded]="true"
+            severity="secondary"
+            (click)="toggleView()"
+          ></button>
+          <button
+            pButton
+            icon="pi pi-plus"
+            label="Add Topic"
+            [rounded]="true"
+            size="small"
+            (click)="showAddTopicModal.set(true)"
+          ></button>
+        </div>
       </div>
 
-      <div class="subject-list">
-        @for (topic of topics(); track topic.id) {
-          <div class="list-item">
-            <div class="list-content">
-              <h3>{{ topic.name }}</h3>
-              <p class="meta">{{ topic.questionCount }} Questions</p>
-              <p class="description">{{ topic.description || 'No description' }}</p>
+      @if (topics().length === 0) {
+        <div class="empty-state">
+          <i class="pi pi-info-circle"></i>
+          <p>No topics available yet.</p>
+        </div>
+      }
+
+      <!-- Grid view -->
+      @if (topics().length > 0 && viewMode() === 'grid') {
+        <div class="app-card-grid">
+          @for (topic of topics(); track topic.id) {
+            <div class="topic-grid-card app-card">
+              <img [src]="getTopicImage(topic)" alt="topic thumbnail" />
+              <div class="topic-grid-content">
+                <h3>{{ topic.name }}</h3>
+                <p class="meta">{{ topic.questionCount }} Questions</p>
+                <p class="description">{{ topic.description || 'No description' }}</p>
+              </div>
+              <div class="topic-grid-actions">
+                <button pButton icon="pi pi-pencil" [text]="true" [rounded]="true" severity="secondary" (click)="openEditTopic(topic)"></button>
+                <button pButton icon="pi pi-trash" [text]="true" [rounded]="true" severity="danger" (click)="confirmDeleteTopic(topic)"></button>
+              </div>
             </div>
-            <div class="list-actions">
-              <button
-                pButton
-                icon="pi pi-pencil"
-                [text]="true"
-                [rounded]="true"
-                severity="secondary"
-                (click)="openEditTopic(topic)"
-              ></button>
-              <button
-                pButton
-                icon="pi pi-trash"
-                [text]="true"
-                [rounded]="true"
-                severity="danger"
-                (click)="confirmDeleteTopic(topic)"
-              ></button>
+          }
+        </div>
+      }
+
+      <!-- List view -->
+      @if (topics().length > 0 && viewMode() === 'list') {
+        <div class="app-card-list-container">
+          @for (topic of topics(); track topic.id) {
+            <div class="list-item app-card-list">
+              <div class="list-content">
+                <h3>{{ topic.name }}</h3>
+                <p class="meta">{{ topic.questionCount }} Questions</p>
+                <p class="description">{{ topic.description || 'No description' }}</p>
+              </div>
+              <div class="list-actions">
+                <button pButton icon="pi pi-pencil" [text]="true" [rounded]="true" severity="secondary" (click)="openEditTopic(topic)"></button>
+                <button pButton icon="pi pi-trash" [text]="true" [rounded]="true" severity="danger" (click)="confirmDeleteTopic(topic)"></button>
+              </div>
             </div>
-          </div>
-        } @empty {
-          <div class="empty-state">
-            <i class="pi pi-info-circle"></i>
-            <p>No topics available yet.</p>
-          </div>
-        }
-      </div>
+          }
+        </div>
+      }
     </div>
   }
 </div>

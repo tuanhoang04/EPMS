@@ -1,0 +1,128 @@
+<app-modal
+  title="Add New Template"
+  size="large"
+  [visible]="visible"
+  saveLabel="Save"
+  [saveDisabled]="!canSave"
+  [saveSaving]="saving()"
+  (saveClicked)="save()"
+  (closed)="close()"
+>
+  <div class="atm-container">
+
+    <!-- Template header fields -->
+    <div class="atm-header-fields">
+      <div class="field-group">
+        <label>Template Title</label>
+        <input type="text" class="text-input" [(ngModel)]="templateTitle" placeholder="Enter template title" />
+      </div>
+      <div class="field-group">
+        <label>Subject</label>
+        <p-autoComplete
+          [(ngModel)]="selectedSubject"
+          [suggestions]="filteredSubjects"
+          (completeMethod)="searchSubjects($event)"
+          (onSelect)="onSubjectSelect($event)"
+          (onClear)="onSubjectClear()"
+          field="name"
+          [dropdown]="true"
+          [forceSelection]="true"
+          [completeOnFocus]="true"
+          placeholder="Select a subject"
+          appendTo="body"
+        ></p-autoComplete>
+      </div>
+    </div>
+
+    <!-- Parts -->
+    <div class="atm-parts-section">
+      <h3 class="atm-parts-title">Template Parts</h3>
+      <div class="atm-parts-list">
+        @for (part of parts(); track part.uid; let i = $index) {
+          <div class="atm-part-card" [class.valid]="part.isValid">
+
+            <div class="atm-part-header">
+              <span class="atm-part-num">Part {{ i + 1 }}</span>
+              <div class="atm-part-actions">
+                <button
+                  class="icon-btn danger"
+                  type="button"
+                  title="Delete"
+                  (click)="deletePart(i)"
+                >
+                  <i class="pi pi-minus-circle"></i>
+                </button>
+              </div>
+            </div>
+
+            <div class="atm-part-body">
+
+              <div class="field-group">
+                <label>Part Title</label>
+                <input
+                  type="text"
+                  class="text-input"
+                  [(ngModel)]="part.title"
+                  (ngModelChange)="checkPartValidity(part)"
+                  placeholder="e.g. Section A"
+                />
+              </div>
+
+              <div class="atm-field-row">
+                <div class="field-group">
+                  <label>Number of Questions</label>
+                  <input
+                    type="number"
+                    class="text-input"
+                    [(ngModel)]="part.numberOfQuestions"
+                    (ngModelChange)="checkPartValidity(part)"
+                    min="1"
+                  />
+                </div>
+                <div class="field-group">
+                  <label>Question Type <span class="optional">(Optional)</span></label>
+                  <div class="select-wrapper">
+                    <select
+                      [(ngModel)]="part.questionType"
+                      (ngModelChange)="checkPartValidity(part)"
+                      class="custom-select"
+                    >
+                      <option [ngValue]="null">Any</option>
+                      @for (type of questionTypes; track type.value) {
+                        <option [value]="type.value">{{ type.label }}</option>
+                      }
+                    </select>
+                    <i class="pi pi-chevron-down select-arrow"></i>
+                  </div>
+                </div>
+              </div>
+
+              <div class="field-group">
+                <label>Topic Coverage</label>
+                <p-autoComplete
+                  [(ngModel)]="part.selectedTopics"
+                  [suggestions]="part.filteredTopics"
+                  (completeMethod)="searchTopics(part, $event)"
+                  (ngModelChange)="checkPartValidity(part)"
+                  [multiple]="true"
+                  [dropdown]="true"
+                  field="name"
+                  [forceSelection]="true"
+                  [completeOnFocus]="true"
+                  placeholder="Select topics..."
+                  [disabled]="!selectedSubject"
+                  appendTo="body"
+                ></p-autoComplete>
+                @if (!selectedSubject) {
+                  <small class="hint-text">Select a subject first</small>
+                }
+              </div>
+
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+
+  </div>
+</app-modal>

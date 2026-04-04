@@ -7,6 +7,8 @@ import Aura from '@primeuix/themes/aura';
 
 import { routes } from './app.routes';
 import { authInterceptor } from './core/interceptors/auth.interceptor';
+import { loadingInterceptor } from './core/interceptors/loading.interceptor';
+import { MessageService } from 'primeng/api';
 
 const AppTheme = definePreset(Aura, {
   semantic: {
@@ -61,7 +63,8 @@ export const appConfig: ApplicationConfig = {
     provideZonelessChangeDetection(),
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes),
-    provideHttpClient(withInterceptors([authInterceptor])),
+    provideHttpClient(withInterceptors([authInterceptor, loadingInterceptor])),
+    MessageService,
     providePrimeNG({
       theme: {
         preset: AppTheme,
@@ -69,6 +72,12 @@ export const appConfig: ApplicationConfig = {
           // Only activate dark mode when .app-dark class is applied — never from OS setting
           darkModeSelector: '.app-dark'
         }
+      },
+      zIndex: {
+        modal: 1100,
+        overlay: 1200,
+        menu: 1000,
+        tooltip: 1100
       }
     })
   ]

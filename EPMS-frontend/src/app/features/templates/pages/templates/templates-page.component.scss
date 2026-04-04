@@ -1,0 +1,130 @@
+.templates-wrapper {
+  background: #f5f5f5;
+  min-height: calc(100vh - 56px - var(--bottom-nav-height));
+}
+
+.templates-container {
+  padding-top: 1rem;
+  padding-bottom: calc(var(--bottom-nav-height) + var(--pagination-height) + 20px);
+}
+
+.filters-toolbar {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+
+.filter-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+
+  label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #666;
+  }
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 1rem;
+  color: #888;
+
+  i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+  }
+
+  p {
+    font-size: 1.1rem;
+  }
+}
+
+.template-card {
+  padding: 1.25rem;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+
+    .meta {
+      .subject {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--primary-color, #2196F3);
+        background: rgba(33, 150, 243, 0.1);
+        padding: 2px 8px;
+        border-radius: 4px;
+      }
+    }
+  }
+
+  .card-body {
+    .template-title {
+      margin: 0;
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #333;
+    }
+
+    .template-date {
+      margin: 0.5rem 0 0;
+      font-size: 0.8rem;
+      color: #777;
+    }
+  }
+}
+
+/* FAB */
+.add-template-fab {
+  position: fixed;
+  bottom: 140px; /* same as question fab */
+  right: 20px;
+  z-index: 1000;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--primary-color, #2196F3);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s;
+
+  &:hover {
+    background: #1976D2;
+  }
+
+  i {
+    font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .filters-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filter-item p-autocomplete {
+    width: 100%;
+  }
+}

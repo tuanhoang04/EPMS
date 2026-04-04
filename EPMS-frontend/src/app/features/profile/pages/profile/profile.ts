@@ -21,7 +21,6 @@ export default class ProfileComponent implements OnInit {
 
   user = this.authService.currentUser;
   statistics = signal<UserStatistics | null>(null);
-  loading = signal(false);
   updating = signal(false);
   successMessage = signal('');
   errorMessage = signal('');
@@ -57,14 +56,9 @@ export default class ProfileComponent implements OnInit {
   }
 
   fetchStatistics() {
-    this.loading.set(true);
     this.statisticsService.getMyStatistics().subscribe({
       next: (stats) => {
         this.statistics.set(stats);
-        this.loading.set(false);
-      },
-      error: () => {
-        this.loading.set(false);
       }
     });
   }

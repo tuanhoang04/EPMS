@@ -1,0 +1,291 @@
+.atm-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ── Header fields ────────────────────────────── */
+.atm-header-fields {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+
+  .field-group {
+    flex: 1;
+    min-width: 200px;
+  }
+}
+
+/* ── Parts section ───────────────────────────── */
+.atm-parts-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #333;
+  margin: 0 0 12px;
+}
+
+.atm-parts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ── Part card (mirrors .aqm-card) ───────────── */
+.atm-part-card {
+  background: #f8f8f8;
+  border: 1.5px solid #e8e8e8;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: border-color 0.2s;
+
+  &.valid {
+    border-color: #0d9488;
+    background: #f0fdf9;
+  }
+}
+
+.atm-part-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px 0;
+}
+
+.atm-part-num {
+  font-size: 14px;
+  font-weight: 700;
+  color: #333;
+}
+
+.atm-part-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.atm-part-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 12px 14px 16px;
+}
+
+.atm-field-row {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+
+  .field-group {
+    flex: 1;
+    min-width: 160px;
+  }
+}
+
+/* ── Shared field styles (mirror add-question-modal) ── */
+.field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+
+  > label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+
+    .optional {
+      font-weight: 400;
+      color: #999;
+      font-size: 12px;
+    }
+  }
+}
+
+.text-input {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1.5px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #333;
+  background: #fff;
+  outline: none;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+  font-family: inherit;
+
+  &:focus {
+    border-color: #0d9488;
+  }
+
+  &::placeholder {
+    color: #bbb;
+  }
+}
+
+.select-wrapper {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+}
+
+.custom-select {
+  appearance: none;
+  width: 100%;
+  padding: 9px 34px 9px 12px;
+  border: 1.5px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #333;
+  background: #fff;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.2s;
+  font-family: inherit;
+
+  &:focus {
+    border-color: #0d9488;
+  }
+}
+
+.select-arrow {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 11px;
+  color: #888;
+  pointer-events: none;
+}
+
+.hint-text {
+  font-size: 12px;
+  color: #f97316;
+}
+
+/* ── Icon buttons (mirror add-question-modal) ── */
+.icon-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 50%;
+  color: #888;
+  font-size: 17px;
+  transition: background 0.15s, color 0.15s;
+
+  &:hover:not(:disabled) {
+    background: #e5e7eb;
+    color: #333;
+  }
+
+  &.danger:hover:not(:disabled) {
+    background: #fee2e2;
+    color: #dc2626;
+  }
+
+  &:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+}
+
+/* ── Autocomplete styling ─────────────────────── */
+::ng-deep .p-autocomplete {
+  width: 100%;
+
+  .p-autocomplete-input {
+    width: 100%;
+    padding: 9px 12px;
+    border: 1.5px solid #e0e0e0;
+    border-radius: 8px 0 0 8px;
+    font-size: 14px;
+    color: #333;
+    background: #fff;
+    outline: none;
+    transition: border-color 0.2s;
+    box-sizing: border-box;
+    font-family: inherit;
+
+    &:focus {
+      border-color: #0d9488;
+      box-shadow: none;
+    }
+
+    &::placeholder {
+      color: #bbb;
+    }
+  }
+
+  .p-autocomplete-dropdown {
+    background: #fafafa;
+    border: 1.5px solid #e0e0e0;
+    border-left: none;
+    border-radius: 0 8px 8px 0;
+    color: #888;
+    width: 34px;
+
+    &:hover {
+      background: #f0f0f0;
+    }
+
+    &:focus {
+      box-shadow: none;
+      border-color: #0d9488;
+    }
+  }
+
+  &.p-autocomplete-multiple .p-autocomplete-multiple-container {
+    width: 100%;
+    padding: 4px 8px;
+    border: 1.5px solid #e0e0e0;
+    border-radius: 8px 0 0 8px;
+    font-size: 14px;
+    color: #333;
+    background: #fff;
+    outline: none;
+    transition: border-color 0.2s;
+    box-sizing: border-box;
+    font-family: inherit;
+    min-height: 41px;
+
+    &:focus-within {
+      border-color: #0d9488;
+    }
+
+    .p-autocomplete-token {
+      padding: 2px 8px;
+      margin-right: 4px;
+      background: #e6f7f5;
+      color: #0d9488;
+      border-radius: 4px;
+      font-size: 13px;
+    }
+
+    .p-autocomplete-input-token {
+      padding: 4px 0;
+
+      input {
+        font-family: inherit;
+        font-size: 14px;
+        padding: 0;
+        border: none;
+        outline: none;
+        box-shadow: none;
+      }
+    }
+  }
+
+  /* Fix: disabled state — no white box inside gray wrapper */
+  &.p-disabled {
+    .p-autocomplete-multiple-container {
+      background: #f5f5f5;
+      border-color: #e0e0e0;
+      cursor: not-allowed;
+    }
+
+    .p-autocomplete-dropdown {
+      background: #f5f5f5;
+      border-color: #e0e0e0;
+      cursor: not-allowed;
+    }
+  }
+}

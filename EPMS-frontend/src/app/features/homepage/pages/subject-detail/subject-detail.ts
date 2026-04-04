@@ -32,10 +32,10 @@ import { ConfirmDialogModule } from 'primeng/confirmdialog';
 export class SubjectDetail implements OnInit {
   subject = signal<SubjectResponse | null>(null);
   topics = signal<TopicResponse[]>([]);
-  loading = signal(false);
   showEditModal = signal(false);
   showAddTopicModal = signal(false);
   topicToEdit = signal<TopicResponse | null>(null);
+  viewMode = signal<'grid' | 'list'>('list');
 
   constructor(
     private route: ActivatedRoute,
@@ -56,14 +56,11 @@ export class SubjectDetail implements OnInit {
   }
 
   loadSubject(id: string) {
-    this.loading.set(true);
     this.subjectService.getById(id).subscribe({
       next: (data) => {
         this.subject.set(data);
-        this.loading.set(false);
       },
       error: () => {
-        this.loading.set(false);
         this.router.navigate(['/']);
       },
     });
@@ -124,6 +121,10 @@ export class SubjectDetail implements OnInit {
     });
   }
 
+  toggleView() {
+    this.viewMode.set(this.viewMode() === 'grid' ? 'list' : 'grid');
+  }
+
   onModalClosed() {
     this.showEditModal.set(false);
     this.showAddTopicModal.set(false);
@@ -132,5 +133,9 @@ export class SubjectDetail implements OnInit {
 
   getSubjectImage(subject: SubjectResponse): string {
     return `https://picsum.photos/seed/${subject.id}/800/400`;
+  }
+
+  getTopicImage(topic: TopicResponse): string {
+    return `https://picsum.photos/seed/topic-${topic.id}/400/200`;
   }
 }

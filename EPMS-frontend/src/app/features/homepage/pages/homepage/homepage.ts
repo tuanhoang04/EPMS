@@ -27,7 +27,6 @@ import { AuthService } from '../../../../core/services/auth.service';
 })
 export class Homepage implements OnInit {
   page = signal<SubjectPage | null>(null);
-  loading = signal(false);
 
   viewMode = signal<'grid' | 'list'>('grid');
   showAddModal = signal(false);
@@ -55,14 +54,9 @@ export class Homepage implements OnInit {
   }
 
   loadSubjects() {
-    this.loading.set(true);
     this.subjectService.getAll(this.pageIndex(), this.pageSize()).subscribe({
       next: (data) => {
         this.page.set(data);
-        this.loading.set(false);
-      },
-      error: () => {
-        this.loading.set(false);
       }
     });
   }

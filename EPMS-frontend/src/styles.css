@@ -1,6 +1,11 @@
 @import "primeicons/primeicons.css";
 @import "tailwindcss";
 
+:root {
+  --bottom-nav-height: 70px;
+  --pagination-height: 60px; /* Approximately height of p-paginator with padding */
+}
+
 @layer base {
   html {
     /* Force light color-scheme so browser never renders inputs/scrollbars in dark mode */
@@ -17,4 +22,56 @@
   width: 100%;
   padding: 0 1rem;
   box-sizing: border-box;
+}
+
+/* =============================================
+   Global card shells
+   ============================================= */
+
+/* Grid card (e.g. subject grid) */
+.app-card {
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  position: relative;
+  border: 1px solid #efefef;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
+  cursor: pointer;
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+.app-card:hover {
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.11);
+  transform: translateY(-2px);
+}
+
+/* List card (e.g. subject list, topic list, question list) */
+.app-card-list {
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid #efefef;
+  border-left: 3px solid transparent;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
+  cursor: pointer;
+  transition: box-shadow 0.2s, transform 0.2s, border-left-color 0.2s;
+}
+.app-card-list:hover {
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.11);
+  transform: translateY(-2px);
+  border-left-color: #0d9488;
+}
+
+/* Shared card grid layout */
+.app-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+/* Shared card list layout */
+.app-card-list-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
 }

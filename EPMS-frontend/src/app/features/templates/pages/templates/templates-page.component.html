@@ -1,0 +1,78 @@
+<app-header [pageTitle]="'Templates'"></app-header>
+
+<app-add-template-modal
+  [visible]="showAddModal()"
+  [preSelectedSubjectId]="selectedSubject()?.id ?? null"
+  (closed)="showAddModal.set(false)"
+  (saved)="onModalSaved()"
+></app-add-template-modal>
+
+<div class="templates-wrapper">
+  <div class="templates-container main-layout-container">
+
+    <!-- Filters -->
+    <div class="filters-toolbar">
+      <div class="filter-item">
+        <label>Subject</label>
+        <p-autocomplete
+          [suggestions]="filteredSubjects()"
+          (completeMethod)="searchSubjects($event)"
+          [ngModel]="selectedSubject()"
+          (onSelect)="onSubjectChange($event)"
+          (onClear)="onSubjectChange(null)"
+          optionLabel="name"
+          [dropdown]="true"
+          [forceSelection]="true"
+          [completeOnFocus]="true"
+          placeholder="Select a Subject"
+          appendTo="body"
+        ></p-autocomplete>
+      </div>
+    </div>
+
+    <!-- Empty state -->
+    @if (templates().length === 0) {
+      <div class="empty-state">
+        <i class="pi pi-table"></i>
+        <p>No templates found matching your criteria.</p>
+      </div>
+    }
+
+    @if (templates().length > 0) {
+      <div class="app-card-list-container">
+        @for (t of templates(); track t.id) {
+          <div class="template-card app-card-list">
+            <div class="card-header">
+              <div class="meta">
+                <span class="subject">{{ t.subjectName }}</span>
+              </div>
+            </div>
+            <div class="card-body">
+              <h3 class="template-title">{{ t.title }}</h3>
+              <p class="template-date">Created at: {{ t.createdAt | date:'short' }}</p>
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Pagination -->
+      @if (page() && page()!.totalElements > 0) {
+        <app-pagination
+          [rows]="pageSize()"
+          [totalRecords]="page()!.totalElements"
+          [rowsPerPageOptions]="pageSizeOptions"
+          [first]="pageIndex() * pageSize()"
+          (onPageChange)="onPageChange($event)"
+        ></app-pagination>
+      }
+    }
+
+  </div>
+</div>
+
+<!-- FAB: Add template -->
+<button class="add-template-fab" (click)="openAddModal()" type="button" title="Add new template">
+  <i class="pi pi-plus"></i>
+</button>
+
+<app-bottom-nav></app-bottom-nav>

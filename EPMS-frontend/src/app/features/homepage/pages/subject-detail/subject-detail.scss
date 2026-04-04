@@ -1,12 +1,12 @@
 .detail-wrapper {
   background: #f5f5f5;
-  min-height: calc(100vh - 56px - 70px);
+  min-height: calc(100vh - 56px - var(--bottom-nav-height));
 }
 
 .detail-container {
   width: 97%;
   padding-top: 1rem;
-  padding-bottom: 156px;
+  padding-bottom: calc(var(--bottom-nav-height) + var(--pagination-height) + 20px);
 }
 
 .header-section {
@@ -67,23 +67,21 @@
       font-size: 1.125rem;
       font-weight: 600;
     }
+
+    .section-header-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
   }
 }
 
+/* List card content */
 .list-item {
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
   display: flex;
   align-items: center;
   gap: 16px;
   padding: 0.75rem 1rem;
-  cursor: pointer;
-  transition: box-shadow 0.2s;
-
-  &:hover {
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.13);
-  }
 
   .list-content {
     flex: 1;
@@ -118,12 +116,51 @@
   }
 }
 
-/* Reusing Homepage styles if needed manually or just defining them here */
-.subject-list {
+/* Grid card content */
+.topic-grid-card {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  margin-bottom: 16px;
+
+  img {
+    width: 100%;
+    height: 120px;
+    object-fit: cover;
+    display: block;
+  }
+
+  .topic-grid-content {
+    flex: 1;
+    padding: 0.75rem 0.75rem 0;
+
+    h3 {
+      margin: 0 0 4px;
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    .meta {
+      margin: 0 0 4px;
+      font-size: 13px;
+      color: #555;
+    }
+
+    .description {
+      margin: 0;
+      font-size: 12px;
+      color: #888;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+  }
+
+  .topic-grid-actions {
+    display: flex;
+    justify-content: flex-end;
+    padding: 4px 4px 4px;
+    gap: 2px;
+  }
 }
 
 .empty-state {

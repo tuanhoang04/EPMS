@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnInit, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnChanges, SimpleChanges, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { forkJoin } from 'rxjs';
@@ -22,6 +22,10 @@ export interface QuestionFormData {
   answer: string;
   imageBase64: string | null;
   imageFileName: string;
+  selectedSubject: SubjectResponse | null;
+  selectedTopic: TopicResponse | null;
+  filteredSubjects: SubjectResponse[];
+  filteredTopics: TopicResponse[];
 }
 
 @Component({
@@ -40,29 +44,22 @@ export class AddQuestionModalComponent implements OnInit, OnChanges {
 
   subjects: SubjectResponse[] = [];
   allTopics: TopicResponse[] = [];
-  topics: TopicResponse[] = [];
-  filteredSubjects: SubjectResponse[] = [];
-  filteredTopics: TopicResponse[] = [];
 
-  selectedSubject: SubjectResponse | null = null;
-  selectedTopic: TopicResponse | null = null;
-
-  forms: QuestionFormData[] = [];
-  saving = false;
-
-  readonly autocompletePanelStyle = { 'z-index': '1250' };
+  forms = signal<QuestionFormData[]>([]);
+  saving = signal(false);
 
   private uidCounter = 1;
 
   readonly difficultyOptions = [
-    { label: 'Very easy', value: 'BEGINNER' },
+    { label: 'Beginner', value: 'BEGINNER' },
     { label: 'Easy', value: 'EASY' },
-    { label: 'Medium', value: 'INTERMEDIATE' },
-    { label: 'Hard', value: 'ADVANCED' },
+    { label: 'Intermediate', value: 'INTERMEDIATE' },
+    { label: 'Advanced', value: 'ADVANCED' },
   ];
 
   readonly questionTypeOptions = [
-    { label: 'Multiple choice question', value: 'MULTIPLE_CHOICE' },
+    { label: 'Multiple choice (one answer)', value: 'MULTIPLE_CHOICE_ONE_RIGHT_CHOICE' },
+    { label: 'Multiple choice (multiple answers)', value: 'MULTIPLE_CHOICE_MULTIPLE_RIGHT_CHOICE' },
     { label: 'True/false question', value: 'TRUE_FALSE' },
     { label: 'Gap-filling', value: 'GAP_FILLING' },
     { label: 'Short answer', value: 'SHORT_ANSWER' },
@@ -75,65 +72,93 @@ export class AddQuestionModalComponent implements OnInit, OnChanges {
   ) {}
 
   ngOnInit() {
-    this.forms = [this.createEmptyForm()];
+    this.forms.set([this.createEmptyForm()]);
+  }
 
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['visible']?.currentValue === true) {
+      this.uidCounter = 1;
+      this.forms.set([this.createEmptyForm()]);
+      this.saving.set(false);
+      this.loadData();
+    }
+  }
+
+  private loadData() {
     this.subjectService.getAll(0, 1000).subscribe({
       next: (data) => {
         this.subjects = data.content;
-        this.filteredSubjects = [...data.content];
+        for (const form of this.forms()) {
+          form.filteredSubjects = [...data.content];
+        }
+
         if (this.preSelectedSubjectId) {
-          this.selectedSubject = data.content.find(s => s.id === this.preSelectedSubjectId) ?? null;
-          if (this.selectedSubject) {
-            this.loadTopicsForSubject(this.selectedSubject.id);
+          const found = data.content.find(s => s.id === this.preSelectedSubjectId);
+          if (found) {
+            this.forms()[0].selectedSubject = found;
+            this.loadTopicsForForm(this.forms()[0], found.id);
           }
         }
+
+        this.forms.update(f => [...f]);
       }
     });
 
     this.topicService.getAll().subscribe({
       next: (data) => {
         this.allTopics = data;
-        this.topics = data;
-        this.filteredTopics = [...data];
-        if (this.preSelectedTopicId) {
-          this.selectedTopic = data.find(t => t.id === this.preSelectedTopicId) ?? null;
+        for (const form of this.forms()) {
+          if (!form.selectedSubject) {
+            form.filteredTopics = [...data];
+          }
         }
+
+        if (this.preSelectedTopicId) {
+          const found = data.find(t => t.id === this.preSelectedTopicId);
+          if (found) {
+            this.forms()[0].selectedTopic = found;
+            if (!this.forms()[0].selectedSubject) {
+              const sub = this.subjects.find(s => s.id === found.subjectId);
+              if (sub) {
+                this.forms()[0].selectedSubject = sub;
+                this.loadTopicsForForm(this.forms()[0], sub.id);
+              }
+            }
+          }
+        }
+
+        this.forms.update(f => [...f]);
       }
     });
   }
 
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes['visible']?.currentValue === true && !changes['visible'].firstChange) {
-      this.uidCounter = 1;
-      this.forms = [this.createEmptyForm()];
-      this.saving = false;
-      this.selectedSubject = null;
-      this.selectedTopic = null;
-    }
-  }
-
-  private createEmptyForm(): QuestionFormData {
+  private createEmptyForm(copyFrom?: QuestionFormData): QuestionFormData {
     return {
       uid: this.uidCounter++,
       questionText: '',
       difficulty: null,
-      questionType: 'MULTIPLE_CHOICE',
+      questionType: 'MULTIPLE_CHOICE_ONE_RIGHT_CHOICE',
       choices: [
-        { value: '', isAnswer: false },
-        { value: '', isAnswer: false },
         { value: '', isAnswer: false },
         { value: '', isAnswer: false },
       ],
       answer: '',
       imageBase64: null,
       imageFileName: '',
+      selectedSubject: copyFrom?.selectedSubject ?? null,
+      selectedTopic: copyFrom?.selectedTopic ?? null,
+      filteredSubjects: [...this.subjects],
+      filteredTopics: copyFrom?.selectedSubject
+        ? this.allTopics.filter(t => t.subjectId === copyFrom.selectedSubject!.id)
+        : [...this.allTopics],
     };
   }
 
   isFormValid(form: QuestionFormData): boolean {
-    if (!form.questionText.trim() || !form.difficulty) return false;
+    if (!form.questionText.trim() || !form.difficulty || !form.selectedTopic) return false;
     switch (form.questionType) {
-      case 'MULTIPLE_CHOICE': {
+      case 'MULTIPLE_CHOICE_ONE_RIGHT_CHOICE':
+      case 'MULTIPLE_CHOICE_MULTIPLE_RIGHT_CHOICE': {
         const filled = form.choices.filter(c => c.value.trim());
         const hasAnswer = form.choices.some(c => c.isAnswer && c.value.trim());
         return filled.length >= 2 && hasAnswer;
@@ -149,9 +174,18 @@ export class AddQuestionModalComponent implements OnInit, OnChanges {
   }
 
   onFieldChange(index: number) {
-    if (index === this.forms.length - 1 && this.isFormValid(this.forms[index])) {
-      this.forms = [...this.forms, this.createEmptyForm()];
+    if (index === this.forms().length - 1 && this.isFormValid(this.forms()[index])) {
+      this.forms.update(f => [...f, this.createEmptyForm(this.forms()[index])]);
     }
+  }
+
+  onChoiceAnswerChange(form: QuestionFormData, choiceIndex: number, formIndex: number) {
+    if (form.questionType === 'MULTIPLE_CHOICE_ONE_RIGHT_CHOICE') {
+      form.choices.forEach((c, i) => c.isAnswer = i === choiceIndex);
+    } else {
+      form.choices[choiceIndex].isAnswer = !form.choices[choiceIndex].isAnswer;
+    }
+    this.onFieldChange(formIndex);
   }
 
   onQuestionTypeChange(form: QuestionFormData) {
@@ -159,23 +193,32 @@ export class AddQuestionModalComponent implements OnInit, OnChanges {
     form.choices = [
       { value: '', isAnswer: false },
       { value: '', isAnswer: false },
-      { value: '', isAnswer: false },
-      { value: '', isAnswer: false },
     ];
-    const index = this.forms.indexOf(form);
+    const index = this.forms().indexOf(form);
     this.onFieldChange(index);
   }
 
+  addChoice(form: QuestionFormData, formIndex: number) {
+    form.choices = [...form.choices, { value: '', isAnswer: false }];
+    this.onFieldChange(formIndex);
+  }
+
+  removeChoice(form: QuestionFormData, choiceIndex: number, formIndex: number) {
+    if (form.choices.length <= 2) return;
+    form.choices = form.choices.filter((_, i) => i !== choiceIndex);
+    this.onFieldChange(formIndex);
+  }
+
   resetForm(index: number) {
-    const uid = this.forms[index].uid;
+    const uid = this.forms()[index].uid;
     const fresh = this.createEmptyForm();
     fresh.uid = uid;
-    this.forms = this.forms.map((f, i) => (i === index ? fresh : f));
+    this.forms.update(forms => forms.map((f, i) => (i === index ? fresh : f)));
   }
 
   deleteForm(index: number) {
-    if (this.forms.length === 1) return;
-    this.forms = this.forms.filter((_, i) => i !== index);
+    if (this.forms().length === 1) return;
+    this.forms.update(forms => forms.filter((_, i) => i !== index));
   }
 
   onImageSelected(event: Event, form: QuestionFormData) {
@@ -185,7 +228,7 @@ export class AddQuestionModalComponent implements OnInit, OnChanges {
     reader.onload = () => {
       form.imageBase64 = reader.result as string;
       form.imageFileName = file.name;
-      this.forms = [...this.forms];
+      this.forms.update(f => [...f]);
     };
     reader.readAsDataURL(file);
   }
@@ -194,37 +237,55 @@ export class AddQuestionModalComponent implements OnInit, OnChanges {
     inputEl.click();
   }
 
-  searchSubjects(event: AutoCompleteCompleteEvent) {
-    const q = event.query.toLowerCase();
-    this.filteredSubjects = this.subjects.filter(s => s.name.toLowerCase().includes(q));
+  searchSubjectsForForm(form: QuestionFormData, event: AutoCompleteCompleteEvent) {
+    const q = event.query ? event.query.toLowerCase() : '';
+    form.filteredSubjects = this.subjects.filter(s => s.name.toLowerCase().includes(q));
   }
 
-  searchTopics(event: AutoCompleteCompleteEvent) {
-    const q = event.query.toLowerCase();
-    this.filteredTopics = this.topics.filter(t => t.name.toLowerCase().includes(q));
+  searchTopicsForForm(form: QuestionFormData, event: AutoCompleteCompleteEvent) {
+    const q = event.query ? event.query.toLowerCase() : '';
+    const pool = form.selectedSubject
+      ? this.allTopics.filter(t => t.subjectId === form.selectedSubject!.id)
+      : this.allTopics;
+    form.filteredTopics = pool.filter(t => t.name.toLowerCase().includes(q));
   }
 
-  onSubjectChange(event: any) {
+  onSubjectChangeForForm(form: QuestionFormData, event: any) {
     const subject = event && typeof event === 'object' && 'id' in event ? event : null;
-    this.selectedSubject = subject;
-    this.selectedTopic = null;
+    form.selectedSubject = subject;
+    form.selectedTopic = null;
     if (subject) {
-      this.loadTopicsForSubject(subject.id);
+      this.loadTopicsForForm(form, subject.id);
     } else {
-      this.topics = this.allTopics;
-      this.filteredTopics = [...this.allTopics];
+      form.filteredTopics = [...this.allTopics];
+      this.forms.update(f => [...f]);
     }
   }
 
-  onTopicChange(event: any) {
-    this.selectedTopic = event && typeof event === 'object' && 'id' in event ? event : null;
+  onTopicChangeForForm(form: QuestionFormData, event: any) {
+    const topic = event && typeof event === 'object' && 'id' in event ? event : null;
+    form.selectedTopic = topic;
+
+    if (topic) {
+      if (!form.selectedSubject || topic.subjectId !== form.selectedSubject.id) {
+        const parentSubject = this.subjects.find(s => s.id === topic.subjectId);
+        if (parentSubject) {
+          form.selectedSubject = parentSubject;
+          // Also update the topics list to show only those from this subject
+          this.loadTopicsForForm(form, topic.subjectId);
+        }
+      }
+    }
+
+    const index = this.forms().indexOf(form);
+    this.onFieldChange(index);
   }
 
-  private loadTopicsForSubject(subjectId: string) {
+  private loadTopicsForForm(form: QuestionFormData, subjectId: string) {
     this.topicService.getBySubjectId(subjectId).subscribe({
       next: (data) => {
-        this.topics = data;
-        this.filteredTopics = [...data];
+        form.filteredTopics = data;
+        this.forms.update(f => [...f]);
       }
     });
   }
@@ -234,22 +295,22 @@ export class AddQuestionModalComponent implements OnInit, OnChanges {
   }
 
   save() {
-    if (!this.selectedTopic || this.saving) return;
-    const valid = this.forms.filter(f => this.isFormValid(f));
+    if (this.saving()) return;
+    const valid = this.forms().filter(f => this.isFormValid(f));
     if (valid.length === 0) return;
 
-    this.saving = true;
+    this.saving.set(true);
     const requests = valid.map(form => {
       const req: Parameters<QuestionService['create']>[0] = {
         questionText: form.questionText.trim(),
         difficulty: form.difficulty!,
         questionType: form.questionType,
-        topicId: this.selectedTopic!.id,
+        topicId: form.selectedTopic!.id,
         questionImageBase64: form.imageBase64,
         questionAnswer: null,
         questionChoices: null,
       };
-      if (form.questionType === 'MULTIPLE_CHOICE') {
+      if (form.questionType === 'MULTIPLE_CHOICE_ONE_RIGHT_CHOICE' || form.questionType === 'MULTIPLE_CHOICE_MULTIPLE_RIGHT_CHOICE') {
         req.questionChoices = JSON.stringify(form.choices.filter(c => c.value.trim()));
       } else {
         req.questionAnswer = form.answer;
@@ -259,21 +320,21 @@ export class AddQuestionModalComponent implements OnInit, OnChanges {
 
     forkJoin(requests).subscribe({
       next: () => {
-        this.saving = false;
+        this.saving.set(false);
         this.saved.emit();
         this.closed.emit();
       },
       error: () => {
-        this.saving = false;
+        this.saving.set(false);
       }
     });
   }
 
   get validCount(): number {
-    return this.forms.filter(f => this.isFormValid(f)).length;
+    return this.forms().filter(f => this.isFormValid(f)).length;
   }
 
   get canSave(): boolean {
-    return !!this.selectedTopic && this.validCount > 0 && !this.saving;
+    return this.validCount > 0 && !this.saving();
   }
 }

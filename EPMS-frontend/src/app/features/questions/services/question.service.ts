@@ -66,6 +66,18 @@ export class QuestionService {
     return this.http.post<QuestionResponse>(this.apiUrl, request);
   }
 
+  update(id: string, request: {
+    questionText: string;
+    questionAnswer: string | null;
+    questionChoices: string | null;
+    questionImageBase64: string | null;
+    difficulty: string;
+    questionType: string;
+    topicId: string;
+  }): Observable<QuestionResponse> {
+    return this.http.put<QuestionResponse>(`${this.apiUrl}/${id}`, request);
+  }
+
   delete(id: string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
