@@ -113,11 +113,11 @@
               <div class="card-body">
                 <div class="card-body-inner">
                   <div class="card-body-text">
-                    <p class="question-text">{{ q.questionText }}</p>
+                    <p class="question-text xml-content" [innerHTML]="q.questionText | xmlRender"></p>
                     @if (getFormattedAnswer(q)) {
                       <div class="answer-section">
                         <span class="answer-label">Answer: </span>
-                        <span class="answer-text">{{ getFormattedAnswer(q) }}</span>
+                        <span class="answer-text xml-content" [innerHTML]="getFormattedAnswer(q) | xmlRender"></span>
                       </div>
                     }
                   </div>
@@ -144,7 +144,7 @@
                   <p-tag [value]="q.difficulty" [severity]="getDifficultySeverity(q.difficulty)"></p-tag>
                   <p-tag [value]="getQuestionTypeLabel(q.questionType)" severity="secondary"></p-tag>
                 </div>
-                <p class="q-grid-text">{{ q.questionText }}</p>
+                <p class="q-grid-text xml-content" [innerHTML]="q.questionText | xmlRender"></p>
               </div>
               <div class="q-grid-meta">
                 <span class="subject">{{ q.subjectName }}</span>

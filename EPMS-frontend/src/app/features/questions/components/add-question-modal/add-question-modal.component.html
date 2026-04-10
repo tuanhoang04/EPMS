@@ -74,13 +74,12 @@
             <!-- Question text -->
             <div class="field-group">
               <label>Question text</label>
-              <input
-                type="text"
-                class="text-input"
-                placeholder="Value"
+              <app-xml-editor
+                placeholder="Enter question text…"
+                [rows]="3"
                 [(ngModel)]="form.questionText"
                 (ngModelChange)="onFieldChange(i)"
-              />
+              ></app-xml-editor>
             </div>
 
             <!-- Difficulty -->
@@ -129,13 +128,13 @@
                   @for (choice of form.choices; track $index; let ci = $index) {
                     <div class="choice-row">
                       <span class="choice-num">{{ ci + 1 }}.</span>
-                      <input
-                        type="text"
-                        class="text-input choice-input"
-                        placeholder="Value"
+                      <app-xml-editor
+                        class="choice-input"
+                        placeholder="Choice text…"
+                        [rows]="1"
                         [(ngModel)]="choice.value"
                         (ngModelChange)="onFieldChange(i)"
-                      />
+                      ></app-xml-editor>
                       @if (form.questionType === 'MULTIPLE_CHOICE_ONE_RIGHT_CHOICE') {
                         <label class="radio-label">
                           <input
@@ -207,26 +206,24 @@
               @case ('GAP_FILLING') {
                 <div class="field-group">
                   <label>Question answer</label>
-                  <input
-                    type="text"
-                    class="text-input"
-                    placeholder="Value"
+                  <app-xml-editor
+                    placeholder="Enter answer…"
+                    [rows]="2"
                     [(ngModel)]="form.answer"
                     (ngModelChange)="onFieldChange(i)"
-                  />
+                  ></app-xml-editor>
                 </div>
               }
 
               @case ('SHORT_ANSWER') {
                 <div class="field-group">
                   <label>Question answer</label>
-                  <textarea
-                    class="text-input textarea-input"
-                    placeholder="Value"
+                  <app-xml-editor
+                    placeholder="Enter answer…"
+                    [rows]="4"
                     [(ngModel)]="form.answer"
                     (ngModelChange)="onFieldChange(i)"
-                    rows="4"
-                  ></textarea>
+                  ></app-xml-editor>
                 </div>
               }
 

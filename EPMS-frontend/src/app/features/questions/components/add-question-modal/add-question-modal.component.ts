@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { forkJoin } from 'rxjs';
 import { AutoCompleteModule, AutoCompleteCompleteEvent } from 'primeng/autocomplete';
 import { ModalComponent } from '../../../../shared/components/modal/modal.component';
+import { XmlEditorComponent } from '../../../../shared/components/xml-editor/xml-editor.component';
 import { QuestionService } from '../../services/question.service';
 import { SubjectService, SubjectResponse } from '../../../homepage/services/subject.service';
 import { TopicService, TopicResponse } from '../../../homepage/services/topic.service';
@@ -31,7 +32,7 @@ export interface QuestionFormData {
 @Component({
   selector: 'app-add-question-modal',
   standalone: true,
-  imports: [CommonModule, FormsModule, AutoCompleteModule, ModalComponent],
+  imports: [CommonModule, FormsModule, AutoCompleteModule, ModalComponent, XmlEditorComponent],
   templateUrl: './add-question-modal.component.html',
   styleUrl: './add-question-modal.component.scss',
 })

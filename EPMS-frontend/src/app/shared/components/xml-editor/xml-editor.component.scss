@@ -1,0 +1,185 @@
+.xml-editor {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  border: 1.5px solid #e0e0e0;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+  transition: border-color 0.2s;
+
+  &:focus-within {
+    border-color: #0d9488;
+    box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.08);
+  }
+}
+
+/* ── Toolbar ─────────────────────────────────── */
+.xml-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  background: #f9fafb;
+  border-bottom: 1px solid #e8e8e8;
+  flex-wrap: wrap;
+  min-height: 38px;
+}
+
+.xml-fmt-btns {
+  display: flex;
+  gap: 2px;
+  flex: 1;
+}
+
+.fmt-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 30px;
+  height: 26px;
+  padding: 0 8px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  color: #555;
+  transition: background 0.12s, border-color 0.12s, color 0.12s;
+  font-family: inherit;
+  user-select: none;
+
+  &:hover {
+    background: #e5e7eb;
+    border-color: #d1d5db;
+    color: #111;
+  }
+
+  &.active {
+    background: #d1fae5;
+    border-color: #0d9488;
+    color: #0d9488;
+  }
+
+  strong {
+    font-weight: 800;
+    font-size: 14px;
+    line-height: 1;
+  }
+
+  em {
+    font-style: italic;
+    font-size: 14px;
+    line-height: 1;
+  }
+
+  .fmt-var {
+    font-family: 'Courier New', monospace;
+    font-style: italic;
+    font-size: 13px;
+    color: #7c3aed;
+  }
+
+  .fmt-code {
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+    letter-spacing: -0.5px;
+  }
+}
+
+.mode-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  background: transparent;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  color: #6b7280;
+  white-space: nowrap;
+  transition: all 0.12s;
+  font-family: inherit;
+
+  &:hover {
+    background: #f3f4f6;
+    color: #374151;
+    border-color: #9ca3af;
+  }
+
+  i { font-size: 11px; }
+}
+
+/* ── Rich editable div ───────────────────────── */
+.xml-editable {
+  min-height: 58px;
+  padding: 9px 12px;
+  font-size: 14px;
+  color: #333;
+  line-height: 1.65;
+  outline: none;
+  cursor: text;
+  white-space: pre-wrap;
+  word-break: break-word;
+
+  /* Placeholder via CSS */
+  &:empty::before {
+    content: attr(data-placeholder);
+    color: #bbb;
+    pointer-events: none;
+  }
+}
+
+/* ── Nested-tag notice ───────────────────────── */
+.xml-notice {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 11px;
+  background: #1e293b;
+  color: #f1f5f9;
+  font-size: 12px;
+  line-height: 1.4;
+  border-radius: 7px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+  pointer-events: none;
+  max-width: 280px;
+  animation: xml-notice-in 0.15s ease;
+  z-index: 20;
+
+  i {
+    font-size: 13px;
+    color: #fbbf24;
+    flex-shrink: 0;
+  }
+}
+
+@keyframes xml-notice-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Raw XML textarea ────────────────────────── */
+.xml-textarea {
+  width: 100%;
+  padding: 9px 12px;
+  border: none;
+  outline: none;
+  font-size: 14px;
+  color: #333;
+  background: #fff;
+  resize: vertical;
+  min-height: 58px;
+  line-height: 1.65;
+  font-family: 'Courier New', monospace;
+  box-sizing: border-box;
+
+  &::placeholder {
+    color: #bbb;
+    font-family: inherit;
+  }
+}

@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { AutoCompleteModule } from 'primeng/autocomplete';
 import { TagModule } from 'primeng/tag';
 import { ModalComponent } from '../../../../shared/components/modal/modal.component';
+import { XmlEditorComponent } from '../../../../shared/components/xml-editor/xml-editor.component';
 import { QuestionResponse, QuestionService, Difficulty } from '../../services/question.service';
 import { SubjectResponse, SubjectService } from '../../../homepage/services/subject.service';
 import { TopicResponse, TopicService } from '../../../homepage/services/topic.service';
@@ -16,7 +17,7 @@ interface QuestionChoice {
 @Component({
   selector: 'app-question-detail-modal',
   standalone: true,
-  imports: [CommonModule, FormsModule, AutoCompleteModule, TagModule, ModalComponent],
+  imports: [CommonModule, FormsModule, AutoCompleteModule, TagModule, ModalComponent, XmlEditorComponent],
   templateUrl: './question-detail-modal.component.html',
   styleUrl: './question-detail-modal.component.scss'
 })

@@ -12,6 +12,7 @@ import { QuestionDetailModalComponent } from '../../components/question-detail-m
 import { AutoCompleteModule, AutoCompleteCompleteEvent } from 'primeng/autocomplete';
 import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
+import { XmlRenderPipe } from '../../../../shared/pipes/xml-render.pipe';
 
 @Component({
   selector: 'app-questions',
@@ -27,6 +28,7 @@ import { TagModule } from 'primeng/tag';
     AutoCompleteModule,
     ButtonModule,
     TagModule,
+    XmlRenderPipe,
   ],
   templateUrl: './questions.html',
   styleUrl: './questions.scss',

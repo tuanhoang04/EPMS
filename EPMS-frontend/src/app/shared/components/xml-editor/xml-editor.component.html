@@ -1,0 +1,72 @@
+<div class="xml-editor">
+
+  <!-- ── Toolbar ──────────────────────────────────────────── -->
+  <div class="xml-toolbar">
+    <div class="xml-fmt-btns">
+      @for (tag of tags; track tag) {
+        <button
+          type="button"
+          class="fmt-btn"
+          [class.active]="activeTag() === tag"
+          [title]="tagLabels[tag]"
+          (mousedown)="$event.preventDefault()"
+          (click)="applyTag(tag)"
+        >
+          @switch (tag) {
+            @case ('b') { <strong>B</strong> }
+            @case ('i') { <em>I</em> }
+            @case ('var') { <span class="fmt-var">x</span> }
+            @case ('code') { <span class="fmt-code">&lt;/&gt;</span> }
+          }
+        </button>
+      }
+    </div>
+
+    <button type="button" class="mode-toggle-btn" (click)="toggleMode()">
+      @if (mode === 'rich') {
+        <i class="pi pi-code"></i> XML
+      } @else {
+        <i class="pi pi-eye"></i> Preview
+      }
+    </button>
+  </div>
+
+  <!-- ── Rich editing (contenteditable) — default mode ─────── -->
+  @if (mode === 'rich') {
+    <div
+      #editableDiv
+      class="xml-editable xml-content"
+      contenteditable="true"
+      [attr.data-placeholder]="placeholder"
+      (input)="onDivInput()"
+      (focus)="onDivFocus()"
+      (blur)="onDivBlur()"
+      (mouseup)="onDivSelectionChange()"
+      (keyup)="onDivSelectionChange()"
+      (paste)="onDivPaste($event)"
+    ></div>
+  }
+
+  <!-- ── Raw XML textarea ──────────────────────────────────── -->
+  @if (mode === 'xml') {
+    <textarea
+      #textareaEl
+      class="xml-textarea"
+      [rows]="rows"
+      [placeholder]="placeholder"
+      [value]="rawValue"
+      (input)="onTextareaInput($event)"
+      (mouseup)="onTextareaSelectionChange()"
+      (keyup)="onTextareaSelectionChange()"
+      (blur)="onTextareaBlur()"
+    ></textarea>
+  }
+
+  <!-- ── Nested-tag notice ─────────────────────────────────── -->
+  @if (notice()) {
+    <div class="xml-notice">
+      <i class="pi pi-info-circle"></i> {{ notice() }}
+    </div>
+  }
+
+</div>
