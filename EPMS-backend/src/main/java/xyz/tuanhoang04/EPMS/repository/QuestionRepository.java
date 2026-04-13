@@ -15,4 +15,7 @@ public interface QuestionRepository extends JpaRepository<Question, UUID>, JpaSp
     List<Question> findByDifficulty(Difficulty difficulty);
     List<Question> findByQuestionType(QuestionType questionType);
     List<Question> findByTopicIdInAndDifficultyInAndQuestionType(List<UUID> topicIds, List<Difficulty> difficulties, QuestionType questionType);
+    List<Question> findByTopicIdIn(List<UUID> topicIds);
+    List<Question> findByTopicIdInAndDifficultyIn(List<UUID> topicIds, List<Difficulty> difficulties);
+    List<Question> findByTopicIdInAndQuestionType(List<UUID> topicIds, QuestionType questionType);
 }
