@@ -131,7 +131,8 @@ export class QuestionsPage implements OnInit {
   }
 
   onSubjectChange(event: any) {
-    const subject = event && typeof event === 'object' && 'id' in event ? event : null;
+    const item = event && 'originalEvent' in event ? event.value : event;
+    const subject = item && typeof item === 'object' && 'id' in item ? item : null;
     this.selectedSubject.set(subject);
     this.selectedTopic.set(null); // Clear topic when subject changed
     this.pageIndex.set(0); // Reset to first page
@@ -150,7 +151,8 @@ export class QuestionsPage implements OnInit {
   }
 
   onTopicChange(event: any) {
-    const topic = event && typeof event === 'object' && 'id' in event ? event : null;
+    const item = event && 'originalEvent' in event ? event.value : event;
+    const topic = item && typeof item === 'object' && 'id' in item ? item : null;
     this.selectedTopic.set(topic);
     this.pageIndex.set(0); // Reset to first page
 
