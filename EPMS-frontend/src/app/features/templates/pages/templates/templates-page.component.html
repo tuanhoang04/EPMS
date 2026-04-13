@@ -7,6 +7,14 @@
   (saved)="onModalSaved()"
 ></app-add-template-modal>
 
+<app-template-detail-modal
+  [visible]="showDetailModal()"
+  [template]="selectedDetailTemplate()"
+  (closed)="showDetailModal.set(false)"
+  (saved)="onModalSaved()"
+  (deleted)="onModalSaved()"
+></app-template-detail-modal>
+
 <div class="templates-wrapper">
   <div class="templates-container main-layout-container">
 
@@ -41,7 +49,7 @@
     @if (templates().length > 0) {
       <div class="app-card-list-container">
         @for (t of templates(); track t.id) {
-          <div class="template-card app-card-list">
+          <div class="template-card app-card-list" (click)="openDetail(t)">
             <div class="card-header">
               <div class="meta">
                 <span class="subject">{{ t.subjectName }}</span>
@@ -49,7 +57,8 @@
             </div>
             <div class="card-body">
               <h3 class="template-title">{{ t.title }}</h3>
-              <p class="template-date">Created at: {{ t.createdAt | date:'short' }}</p>
+              <p class="template-parts-summary">{{ t.parts.length }} part(s)</p>
+              <p class="template-date">Created: {{ t.createdAt | date:'mediumDate' }}</p>
             </div>
           </div>
         }

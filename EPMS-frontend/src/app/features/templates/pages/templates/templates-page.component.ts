@@ -10,6 +10,7 @@ import { AutoCompleteModule, AutoCompleteCompleteEvent } from 'primeng/autocompl
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { AddTemplateModalComponent } from '../../components/add-template-modal/add-template-modal.component';
+import { TemplateDetailModalComponent } from '../../components/template-detail-modal/template-detail-modal.component';
 
 @Component({
   selector: 'app-templates',
@@ -24,6 +25,7 @@ import { AddTemplateModalComponent } from '../../components/add-template-modal/a
     ButtonModule,
     CardModule,
     AddTemplateModalComponent,
+    TemplateDetailModalComponent,
   ],
   templateUrl: './templates-page.component.html',
   styleUrl: './templates-page.component.scss',
@@ -37,6 +39,8 @@ export class TemplatesPage implements OnInit {
 
   subjects = signal<SubjectResponse[]>([]);
   showAddModal = signal(false);
+  showDetailModal = signal(false);
+  selectedDetailTemplate = signal<TemplateResponse | null>(null);
 
   selectedSubject = signal<any | null>(null);
   filteredSubjects = signal<SubjectResponse[]>([]);
@@ -91,7 +95,8 @@ export class TemplatesPage implements OnInit {
   }
 
   onSubjectChange(event: any) {
-    const subject = event && typeof event === 'object' && 'id' in event ? event : null;
+    const item = event && 'originalEvent' in event ? event.value : event;
+    const subject = item && typeof item === 'object' && 'id' in item ? item : null;
     this.selectedSubject.set(subject);
     this.pageIndex.set(0);
   }
@@ -105,6 +110,11 @@ export class TemplatesPage implements OnInit {
 
   openAddModal() {
     this.showAddModal.set(true);
+  }
+
+  openDetail(template: TemplateResponse) {
+    this.selectedDetailTemplate.set(template);
+    this.showDetailModal.set(true);
   }
 
   onModalSaved() {

@@ -10,21 +10,28 @@
 
 .filters-toolbar {
   display: flex;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
   flex-wrap: wrap;
-  align-items: flex-end;
+  gap: 16px;
+  background: #fff;
+  padding: 1.25rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  margin-bottom: 24px;
 }
 
 .filter-item {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 6px;
+  flex: 1;
+  min-width: 200px;
 
   label {
-    font-size: 0.8rem;
+    font-size: 13px;
     font-weight: 600;
     color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
   }
 }
 
@@ -33,43 +40,39 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 4rem 1rem;
-  color: #888;
+  padding: 80px 0;
+  color: #aaa;
 
   i {
     font-size: 3rem;
-    margin-bottom: 1rem;
+    margin-bottom: 16px;
   }
 
   p {
-    font-size: 1.1rem;
+    font-size: 16px;
   }
 }
 
+/* Template list card */
 .template-card {
   padding: 1.25rem;
   cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  }
 
   .card-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 0.75rem;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+    gap: 12px;
 
     .meta {
+      font-size: 13px;
+      color: #777;
+
       .subject {
-        font-size: 0.85rem;
         font-weight: 600;
-        color: var(--primary-color, #2196F3);
-        background: rgba(33, 150, 243, 0.1);
-        padding: 2px 8px;
-        border-radius: 4px;
+        color: #444;
       }
     }
   }
@@ -77,15 +80,22 @@
   .card-body {
     .template-title {
       margin: 0;
-      font-size: 1.1rem;
+      font-size: 1rem;
       font-weight: 600;
       color: #333;
+      line-height: 1.5;
+    }
+
+    .template-parts-summary {
+      margin: 8px 0 0;
+      font-size: 0.875rem;
+      color: #777;
     }
 
     .template-date {
-      margin: 0.5rem 0 0;
+      margin: 6px 0 0;
       font-size: 0.8rem;
-      color: #777;
+      color: #999;
     }
   }
 }
@@ -93,38 +103,38 @@
 /* FAB */
 .add-template-fab {
   position: fixed;
-  bottom: 140px; /* same as question fab */
+  bottom: 140px;
   right: 20px;
   z-index: 1000;
   width: 52px;
   height: 52px;
   border-radius: 50%;
-  background: var(--primary-color, #2196F3);
-  color: white;
+  background: #0d9488;
+  color: #fff;
+  border: none;
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-  border: none;
-  cursor: pointer;
-  transition: background 0.2s;
-
-  &:hover {
-    background: #1976D2;
-  }
+  box-shadow: 0 4px 16px rgba(13, 148, 136, 0.4);
+  transition: background 0.2s, transform 0.15s;
 
   i {
-    font-size: 1.5rem;
+    font-size: 22px;
+  }
+
+  &:hover {
+    background: #0f766e;
+    transform: scale(1.08);
+  }
+
+  &:active {
+    transform: scale(0.96);
   }
 }
 
-@media (max-width: 600px) {
-  .filters-toolbar {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .filter-item p-autocomplete {
-    width: 100%;
+@media (max-width: 640px) {
+  .filter-item {
+    min-width: 100%;
   }
 }

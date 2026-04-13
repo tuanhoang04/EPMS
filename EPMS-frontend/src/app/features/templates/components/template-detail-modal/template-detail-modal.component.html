@@ -1,17 +1,26 @@
 <app-modal
-  title="Add New Template"
+  title="Template Detail"
   size="large"
   [visible]="visible"
-  saveLabel="Save"
-  [saveDisabled]="!canSave"
+  saveLabel="Save Changes"
   [saveSaving]="saving()"
+  [saveDisabled]="!canSave"
   (saveClicked)="save()"
   (closed)="close()"
 >
-  <div class="atm-container">
+  <div class="tdm-container">
 
-    <!-- Template header fields -->
-    <div class="atm-header-fields">
+    <!-- Header row: ID + delete -->
+    <div class="tdm-header">
+      <span class="tdm-id">ID: {{ template?.id }}</span>
+      <button class="delete-btn" (click)="delete()" [disabled]="deleting()" type="button">
+        <i class="pi" [class.pi-trash]="!deleting()" [class.pi-spin]="deleting()" [class.pi-spinner]="deleting()"></i>
+        Delete Template
+      </button>
+    </div>
+
+    <!-- Title + Subject -->
+    <div class="tdm-header-fields">
       <div class="field-group">
         <label>Template Title</label>
         <input type="text" class="text-input" [(ngModel)]="templateTitle" placeholder="Enter template title" />
@@ -35,27 +44,22 @@
     </div>
 
     <!-- Parts -->
-    <div class="atm-parts-section">
-      <h3 class="atm-parts-title">Template Parts</h3>
-      <div class="atm-parts-list">
+    <div class="tdm-parts-section">
+      <h3 class="tdm-parts-title">Template Parts</h3>
+      <div class="tdm-parts-list">
         @for (part of parts(); track part.uid; let i = $index) {
-          <div class="atm-part-card" [class.valid]="part.isValid">
+          <div class="tdm-part-card" [class.valid]="part.isValid">
 
-            <div class="atm-part-header">
-              <span class="atm-part-num">Part {{ i + 1 }}</span>
-              <div class="atm-part-actions">
-                <button
-                  class="icon-btn danger"
-                  type="button"
-                  title="Delete"
-                  (click)="deletePart(i)"
-                >
+            <div class="tdm-part-header">
+              <span class="tdm-part-num">Part {{ i + 1 }}</span>
+              <div class="tdm-part-actions">
+                <button class="icon-btn danger" type="button" title="Delete" (click)="deletePart(i)">
                   <i class="pi pi-minus-circle"></i>
                 </button>
               </div>
             </div>
 
-            <div class="atm-part-body">
+            <div class="tdm-part-body">
 
               <div class="field-group">
                 <label>Part Title</label>
@@ -68,7 +72,7 @@
                 />
               </div>
 
-              <div class="atm-field-row">
+              <div class="tdm-field-row">
                 <div class="field-group">
                   <label>Number of Questions</label>
                   <input

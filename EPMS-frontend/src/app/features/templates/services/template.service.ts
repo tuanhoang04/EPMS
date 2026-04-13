@@ -2,11 +2,26 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
+export interface TemplatePartTopicResponse {
+  id: string;
+  name: string;
+}
+
+export interface TemplatePartResponse {
+  id: string;
+  title: string;
+  seqNumber: number;
+  numberOfQuestions: number;
+  questionType: string | null;
+  topics: TemplatePartTopicResponse[];
+}
+
 export interface TemplateResponse {
   id: string;
   title: string;
   subjectId: string;
   subjectName: string;
+  parts: TemplatePartResponse[];
   createdAt: string;
   updatedAt: string;
 }
