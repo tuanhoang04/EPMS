@@ -170,7 +170,10 @@ export class TemplateDetailModalComponent implements OnChanges {
 
   searchTopics(part: TemplatePartFormData, event: AutoCompleteCompleteEvent) {
     const q = event.query ? event.query.toLowerCase() : '';
-    part.filteredTopics = this.topics.filter(t => t.name.toLowerCase().includes(q));
+    const selectedIds = new Set(part.selectedTopics.map(t => t.id));
+    part.filteredTopics = this.topics.filter(t =>
+      t.name.toLowerCase().includes(q) && !selectedIds.has(t.id)
+    );
   }
 
   deletePart(index: number) {

@@ -396,3 +396,50 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+::ng-deep .p-autocomplete {
+  width: 100%;
+  .p-inputtext {
+    width: 100%;
+    padding: 9px 12px;
+    border: 1.5px solid #e0e0e0;
+    border-radius: 8px 0 0 8px;
+    font-size: 14px;
+    color: #333;
+    background: #fff;
+    outline: none !important;
+    box-shadow: none !important;
+    transition: border-color 0.2s;
+    box-sizing: border-box;
+    font-family: inherit;
+
+    &:focus {
+      border-color: #0d9488;
+      box-shadow: none !important;
+      outline: none !important;
+    }
+
+    &::placeholder {
+      color: #bbb;
+    }
+  }
+
+  .p-autocomplete-dropdown {
+    background: #fafafa;
+    border: 1.5px solid #e0e0e0;
+    border-left: none;
+    border-radius: 0 8px 8px 0;
+    color: #888;
+    width: 34px;
+
+    &:hover {
+      background: #f0f0f0;
+    }
+
+    &:focus {
+      box-shadow: none !important;
+      outline: none !important;
+      border-color: #0d9488;
+    }
+  }
+}

@@ -276,7 +276,8 @@
 
     &:focus {
       border-color: #0d9488;
-      box-shadow: none;
+      box-shadow: none !important;
+      outline: none !important;
     }
 
     &::placeholder {
@@ -295,6 +296,12 @@
     &:hover {
       background: #f0f0f0;
     }
+
+    &:focus {
+      box-shadow: none !important;
+      outline: none !important;
+      border-color: #0d9488;
+    }
   }
 
   &.p-autocomplete-multiple {
@@ -302,9 +309,13 @@
     border-radius: 8px;
     background: #fff;
     transition: border-color 0.2s;
+    outline: none !important;
+    box-shadow: none !important;
 
-    &:focus-within {
+    &:focus, &:focus-within {
       border-color: #0d9488;
+      outline: none !important;
+      box-shadow: none !important;
     }
 
     .p-autocomplete-multiple-container {
@@ -314,7 +325,8 @@
       font-size: 14px;
       color: #333;
       background: transparent;
-      outline: none;
+      outline: none !important;
+      box-shadow: none !important;
       box-sizing: border-box;
       font-family: inherit;
       min-height: 41px;

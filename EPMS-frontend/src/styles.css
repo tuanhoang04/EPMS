@@ -109,3 +109,26 @@
   gap: 10px;
   margin-bottom: 16px;
 }
+
+/* Global PrimeNG Autocomplete Overrides to remove internal focus rings/rectangles */
+.p-autocomplete-input,
+.p-autocomplete-multiple-container,
+.p-autocomplete-dropdown,
+.p-autocomplete-token,
+.p-autocomplete-input-token input {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.p-autocomplete-multiple-container:focus,
+.p-autocomplete-multiple-container:focus-within,
+.p-autocomplete-input:focus,
+.p-autocomplete-dropdown:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Remove the inner border rectangle — the actual border lives on the outer wrapper */
+.p-autocomplete.p-autocomplete-multiple .p-autocomplete-multiple-container {
+  border: none !important;
+}

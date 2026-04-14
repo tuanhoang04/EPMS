@@ -228,7 +228,8 @@
     }
 
     &:focus {
-      box-shadow: none;
+      box-shadow: none !important;
+      outline: none !important;
       border-color: #0d9488;
     }
   }
@@ -241,14 +242,17 @@
     font-size: 14px;
     color: #333;
     background: #fff;
-    outline: none;
+    outline: none !important;
+    box-shadow: none !important;
     transition: border-color 0.2s;
     box-sizing: border-box;
     font-family: inherit;
     min-height: 41px;
 
-    &:focus-within {
+    &:focus, &:focus-within {
       border-color: #0d9488;
+      box-shadow: none !important;
+      outline: none !important;
     }
 
     .p-autocomplete-token {

@@ -355,9 +355,12 @@
       border: 1.5px solid #e5e7eb;
       border-radius: 10px;
       font-size: 15px;
+      outline: none !important;
+      box-shadow: none !important;
       &:focus {
         border-color: #0d9488;
-        box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.1);
+        box-shadow: none !important;
+        outline: none !important;
       }
     }
     .p-autocomplete-dropdown {
@@ -367,6 +370,12 @@
       border: 1.5px solid #e5e7eb;
       border-left: none;
       color: #6b7280;
+
+      &:focus {
+        box-shadow: none !important;
+        outline: none !important;
+        border-color: #0d9488;
+      }
     }
   }
 }
