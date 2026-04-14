@@ -19,6 +19,7 @@ public class TemplatePart extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     @Nullable
+    @Column(length = 50)
     private QuestionType questionType;
 
     @ManyToOne(fetch = FetchType.LAZY)
