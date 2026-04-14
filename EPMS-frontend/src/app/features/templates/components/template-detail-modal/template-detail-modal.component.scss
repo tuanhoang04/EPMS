@@ -2,7 +2,7 @@
   padding: 8px 4px;
 }
 
-/* Header row (ID + delete) — mirrors qdm-header */
+/* Header row (ID + actions) */
 .tdm-header {
   display: flex;
   justify-content: space-between;
@@ -15,6 +15,37 @@
     font-size: 13px;
     color: #999;
     font-family: monospace;
+  }
+}
+
+.tdm-header-buttons {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  .generate-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #fff;
+    border: 1.5px solid #0d9488;
+    color: #0d9488;
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+
+    &:hover:not(:disabled) {
+      background: #0d9488;
+      color: #fff;
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
   }
 
   .delete-btn {
@@ -266,54 +297,82 @@
     }
   }
 
-  &.p-autocomplete-multiple .p-autocomplete-multiple-container {
-    width: 100%;
-    padding: 4px 8px;
+  &.p-autocomplete-multiple {
     border: 1.5px solid #e0e0e0;
-    border-radius: 8px 0 0 8px;
-    font-size: 14px;
-    color: #333;
+    border-radius: 8px;
     background: #fff;
-    outline: none;
-    box-sizing: border-box;
-    font-family: inherit;
-    min-height: 41px;
+    transition: border-color 0.2s;
 
     &:focus-within {
       border-color: #0d9488;
     }
 
-    .p-autocomplete-token {
-      padding: 2px 8px;
-      margin-right: 4px;
-      background: #e6f7f5;
-      color: #0d9488;
-      border-radius: 4px;
-      font-size: 13px;
+    .p-autocomplete-multiple-container {
+      width: 100%;
+      padding: 4px 8px;
+      border: none !important;
+      font-size: 14px;
+      color: #333;
+      background: transparent;
+      outline: none;
+      box-sizing: border-box;
+      font-family: inherit;
+      min-height: 41px;
+
+      .p-autocomplete-token {
+        padding: 2px 8px;
+        margin-right: 4px;
+        background: #e6f7f5;
+        color: #0d9488;
+        border-radius: 4px;
+        font-size: 13px;
+      }
+
+      .p-autocomplete-input-token {
+        padding: 4px 0;
+
+        input {
+          font-family: inherit;
+          font-size: 14px;
+          padding: 0;
+          border: none;
+          outline: none;
+          box-shadow: none;
+        }
+      }
     }
 
-    .p-autocomplete-input-token {
-      padding: 4px 0;
+    .p-autocomplete-dropdown {
+      border: none;
+      border-left: 1.5px solid #e0e0e0;
+      border-radius: 0 8px 8px 0;
+      background: #fafafa;
+      color: #888;
+      width: 34px;
 
-      input {
-        font-family: inherit;
-        font-size: 14px;
-        padding: 0;
-        border: none;
-        outline: none;
-        box-shadow: none;
+      &:hover {
+        background: #f0f0f0;
       }
     }
   }
 
   &.p-disabled {
-    .p-autocomplete-multiple-container {
+    &.p-autocomplete-multiple {
       background: #f5f5f5;
       border-color: #e0e0e0;
-      cursor: not-allowed;
 
-      .p-autocomplete-input-token input {
-        background: transparent;
+      .p-autocomplete-multiple-container {
+        cursor: not-allowed;
+
+        .p-autocomplete-input-token input {
+          background: transparent;
+          cursor: not-allowed;
+        }
+      }
+
+      .p-autocomplete-dropdown {
+        background: #f5f5f5;
+        border-color: #e0e0e0;
         cursor: not-allowed;
       }
     }

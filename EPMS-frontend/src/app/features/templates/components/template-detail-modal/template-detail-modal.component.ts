@@ -6,6 +6,7 @@ import { ModalComponent } from '../../../../shared/components/modal/modal.compon
 import { TemplateService, TemplateResponse, TemplatePartResponse } from '../../services/template.service';
 import { SubjectService, SubjectResponse } from '../../../homepage/services/subject.service';
 import { TopicService, TopicResponse } from '../../../homepage/services/topic.service';
+import { ExamPaperService } from '../../services/exam-paper.service';
 
 export interface TemplatePartFormData {
   uid: number;
@@ -33,6 +34,7 @@ export class TemplateDetailModalComponent implements OnChanges {
 
   saving = signal(false);
   deleting = signal(false);
+  generating = signal(false);
 
   templateTitle = '';
   selectedSubject: SubjectResponse | null = null;
@@ -55,7 +57,8 @@ export class TemplateDetailModalComponent implements OnChanges {
   constructor(
     private templateService: TemplateService,
     private subjectService: SubjectService,
-    private topicService: TopicService
+    private topicService: TopicService,
+    private examPaperService: ExamPaperService,
   ) {}
 
   ngOnChanges(changes: SimpleChanges) {
@@ -225,6 +228,25 @@ export class TemplateDetailModalComponent implements OnChanges {
         this.close();
       },
       error: () => this.deleting.set(false)
+    });
+  }
+
+  generate() {
+    if (!this.template || this.generating()) return;
+    this.generating.set(true);
+
+    const title = this.templateTitle.trim() || this.template.title;
+    this.examPaperService.generate(this.template.id, title).subscribe({
+      next: (blob) => {
+        this.generating.set(false);
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${title}.docx`;
+        a.click();
+        URL.revokeObjectURL(url);
+      },
+      error: () => this.generating.set(false),
     });
   }
 
