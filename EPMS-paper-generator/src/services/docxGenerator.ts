@@ -5,10 +5,16 @@ import {
   Paragraph,
   TabStopType,
   TextRun,
+  Table,
+  TableRow,
+  TableCell,
+  WidthType,
+  BorderStyle
 } from 'docx';
 import type { GenerateRequest, QuestionChoice, QuestionData } from '../types';
 import { getPlainText, parseXml } from '../utils/xmlParser';
 import type { TextSegment } from '../utils/xmlParser';
+type DocChild = Paragraph | Table;
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
@@ -33,6 +39,53 @@ const CHARS_PER_LINE = 90;
 const USABLE_WIDTH_TWIPS = 9026;
 
 const CHOICE_LABELS = 'ABCDEFGHIJ'.split('');
+
+function choiceEqualTable(choices: QuestionChoice[], labels: string[]): Table {
+  const n = choices.length;
+  const colWidth = Math.floor(100 / n); // percentage
+
+  const row = new TableRow({
+    children: choices.map((choice, i) =>
+      new TableCell({
+        width: {
+          size: colWidth,
+          type: WidthType.PERCENTAGE,
+        },
+        margins: { top: 80, bottom: 80, left: 60, right: 60 },
+        children: [
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: `${labels[i]}. `,
+                font: FONT,
+                size: CHOICE_SIZE,
+              }),
+              ...xmlRuns(choice.value, CHOICE_SIZE),
+            ],
+          }),
+        ],
+      }),
+    ),
+  });
+
+  return new Table({
+    width: {
+      size: 100,
+      type: WidthType.PERCENTAGE,
+    },
+    rows: [row],
+    margins: { top: 70, bottom: 70 },
+    // no borders
+    borders: {
+      top: { size: 0, color: 'FFFFFF', style: BorderStyle.NONE },
+      bottom: { size: 0, color: 'FFFFFF', style: BorderStyle.NONE },
+      left: { size: 0, color: 'FFFFFF', style: BorderStyle.NONE },
+      right: { size: 0, color: 'FFFFFF', style: BorderStyle.NONE },
+      insideHorizontal: { size: 0, color: 'FFFFFF', style: BorderStyle.NONE },
+      insideVertical: { size: 0, color: 'FFFFFF', style: BorderStyle.NONE },
+    }
+  });
+}
 
 // ── XML → TextRun helpers ─────────────────────────────────────────────────────
 
@@ -61,7 +114,7 @@ function xmlRuns(text: string, size: number): TextRun[] {
 function choiceSeparateParagraph(label: string, xmlText: string, keepNext: boolean): Paragraph {
   return new Paragraph({
     children: [
-      new TextRun({ text: `${label}.\u2003`, font: FONT, size: CHOICE_SIZE }),
+      new TextRun({ text: `${label}. `, font: FONT, size: CHOICE_SIZE }),
       ...xmlRuns(xmlText, CHOICE_SIZE),
     ],
     indent: { left: 360 },
@@ -70,50 +123,25 @@ function choiceSeparateParagraph(label: string, xmlText: string, keepNext: boole
   });
 }
 
-/**
- * Renders all choices in a single paragraph using evenly-spaced tab stops.
- * This avoids table cell borders entirely.
- *
- * Tab stop positions divide the usable line width equally so that:
- *   choice[0] starts at the natural indent,
- *   choice[1] starts at 1/n of the usable width,
- *   choice[2] starts at 2/n, … and so on.
- */
-function choiceSameLineParagraph(choices: QuestionChoice[], labels: string[]): Paragraph {
-  const n = choices.length;
-
-  // One tab stop per inter-choice boundary (n choices → n-1 stops)
-  const tabStops = Array.from({ length: n - 1 }, (_, i) => ({
-    type: TabStopType.LEFT,
-    position: Math.round(USABLE_WIDTH_TWIPS * (i + 1) / n),
-  }));
-
-  const children: TextRun[] = [];
-  choices.forEach((choice, i) => {
-    children.push(new TextRun({ text: `${labels[i]}.\u2003`, font: FONT, size: CHOICE_SIZE }));
-    children.push(...xmlRuns(choice.value, CHOICE_SIZE));
-    if (i < n - 1) {
-      children.push(new TextRun({ text: '\t', font: FONT, size: CHOICE_SIZE }));
-    }
-  });
-
-  return new Paragraph({
-    children,
-    tabStops,
-    keepLines: true,
-    spacing: { after: 80 },
-  });
-}
-
 // ── Question block ─────────────────────────────────────────────────────────────
+
+const estimateChoiceLength = (label: string, text: string) => {
+  const plain = getPlainText(text);
+
+  return (
+    label.length + 2 +
+    plain.length * 0.6 +     // slightly higher weight
+    (plain.match(/[A-Z]/g)?.length || 0) * 0.2 // uppercase wider
+  );
+};
 
 /**
  * Returns the sequence of paragraphs that represent one question.
  * All paragraphs except the last carry keepNext=true so the entire block
  * stays on one page.
  */
-function createQuestionBlock(index: number, question: QuestionData): Paragraph[] {
-  const items: Paragraph[] = [];
+function createQuestionBlock(index: number, question: QuestionData): DocChild[] {
+  const items: DocChild[] = [];
 
   const isMultipleChoice =
     question.questionType === 'MULTIPLE_CHOICE_ONE_RIGHT_CHOICE' ||
@@ -151,7 +179,7 @@ function createQuestionBlock(index: number, question: QuestionData): Paragraph[]
       { value: 'True', isAnswer: false },
       { value: 'False', isAnswer: false },
     ];
-    items.push(choiceSameLineParagraph(tfChoices, ['A', 'B']));
+    items.push(choiceEqualTable(tfChoices, ['A', 'B']));
   } else if (isMultipleChoice && question.questionChoices) {
     let choices: QuestionChoice[] = [];
     try {
@@ -167,14 +195,14 @@ function createQuestionBlock(index: number, question: QuestionData): Paragraph[]
         (_, i) => CHOICE_LABELS[i] ?? String.fromCharCode(65 + i),
       );
 
-      // Estimate total display length: label + ". " + plain text + trailing space
-      const totalLen = choices.reduce(
-        (sum, c, i) => sum + (labels[i]?.length ?? 1) + 2 + getPlainText(c.value).length + 1,
-        0,
+      const maxLen = Math.max(
+        ...choices.map((c, i) => estimateChoiceLength(labels[i], c.value))
       );
 
-      if (totalLen / CHARS_PER_LINE < 0.9) {
-        items.push(choiceSameLineParagraph(choices, labels));
+      const perColumnLimit = (CHARS_PER_LINE / choices.length) * 0.9;
+
+      if (maxLen <= perColumnLimit) {
+        items.push(choiceEqualTable(choices, labels));
       } else {
         choices.forEach((choice, i) => {
           const isLast = i === choices.length - 1;
@@ -196,7 +224,7 @@ function createQuestionBlock(index: number, question: QuestionData): Paragraph[]
 // ── Public API ────────────────────────────────────────────────────────────────
 
 export async function generateExamDocx(request: GenerateRequest): Promise<Buffer> {
-  const children: Paragraph[] = [];
+  const children: DocChild[] = [];
 
   // ── Header: title + subject ──
   children.push(
