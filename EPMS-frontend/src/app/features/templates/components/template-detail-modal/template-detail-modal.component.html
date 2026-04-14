@@ -10,13 +10,19 @@
 >
   <div class="tdm-container">
 
-    <!-- Header row: ID + delete -->
+    <!-- Header row: ID + actions -->
     <div class="tdm-header">
       <span class="tdm-id">ID: {{ template?.id }}</span>
-      <button class="delete-btn" (click)="delete()" [disabled]="deleting()" type="button">
-        <i class="pi" [class.pi-trash]="!deleting()" [class.pi-spin]="deleting()" [class.pi-spinner]="deleting()"></i>
-        Delete Template
-      </button>
+      <div class="tdm-header-buttons">
+        <button class="generate-btn" (click)="generate()" [disabled]="generating()" type="button">
+          <i class="pi" [class.pi-file-word]="!generating()" [class.pi-spin]="generating()" [class.pi-spinner]="generating()"></i>
+          {{ generating() ? 'Generating...' : 'Generate Exam' }}
+        </button>
+        <button class="delete-btn" (click)="delete()" [disabled]="deleting()" type="button">
+          <i class="pi" [class.pi-trash]="!deleting()" [class.pi-spin]="deleting()" [class.pi-spinner]="deleting()"></i>
+          Delete Template
+        </button>
+      </div>
     </div>
 
     <!-- Title + Subject -->

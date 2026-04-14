@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 import xyz.tuanhoang04.EPMS.constant.Difficulty;
 import xyz.tuanhoang04.EPMS.constant.QuestionType;
@@ -149,16 +150,21 @@ public class ExamPaperService {
 
         HttpEntity<PaperGenRequest> entity = new HttpEntity<>(request, headers);
 
-        ResponseEntity<byte[]> response = restTemplate.exchange(
-                paperGeneratorUrl + "/generate",
-                HttpMethod.POST,
-                entity,
-                byte[].class);
+        try {
+            ResponseEntity<byte[]> response = restTemplate.exchange(
+                    paperGeneratorUrl + "/generate",
+                    HttpMethod.POST,
+                    entity,
+                    byte[].class);
 
-        if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
-            throw new RuntimeException("Paper generator service returned an error: " + response.getStatusCode());
+            if (response.getBody() == null) {
+                throw new RuntimeException("Paper generator returned an empty response");
+            }
+
+            return response.getBody();
+        } catch (HttpStatusCodeException ex) {
+            throw new RuntimeException(
+                    "Paper generator service error (" + ex.getStatusCode() + "): " + ex.getResponseBodyAsString(), ex);
         }
-
-        return response.getBody();
     }
 }
