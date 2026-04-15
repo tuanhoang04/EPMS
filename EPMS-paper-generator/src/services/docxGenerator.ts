@@ -49,11 +49,7 @@ function xmlRuns(text: string, size: number): TextRun[] {
 
 const estimateChoiceLength = (label: string, text: string): number => {
   const plain = getPlainText(text);
-  return (
-    label.length + 2 +
-    plain.length * 0.6 +
-    (plain.match(/[A-Z]/g)?.length || 0) * 0.2
-  );
+  return label.length + 2 + plain.length;
 };
 
 function choiceTabLine(choices: QuestionChoice[], labels: string[]): Paragraph {

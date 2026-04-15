@@ -1,5 +1,6 @@
 package xyz.tuanhoang04.EPMS.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -10,6 +11,7 @@ import xyz.tuanhoang04.EPMS.constant.Difficulty;
 import xyz.tuanhoang04.EPMS.constant.QuestionType;
 import xyz.tuanhoang04.EPMS.dto.requests.*;
 import xyz.tuanhoang04.EPMS.entity.*;
+import xyz.tuanhoang04.EPMS.repository.ExamHistoryRawTextRepository;
 import xyz.tuanhoang04.EPMS.repository.QuestionRepository;
 import xyz.tuanhoang04.EPMS.repository.TemplateRepository;
 
@@ -26,17 +28,24 @@ public class ExamPaperService {
 
     private final TemplateRepository templateRepository;
     private final QuestionRepository questionRepository;
+    private final ExamHistoryRawTextRepository examHistoryRawTextRepository;
     private final RestTemplate restTemplate;
+    private final ObjectMapper objectMapper;
 
     public ExamPaperService(
             TemplateRepository templateRepository,
             QuestionRepository questionRepository,
-            RestTemplate restTemplate) {
+            ExamHistoryRawTextRepository examHistoryRawTextRepository,
+            RestTemplate restTemplate,
+            ObjectMapper objectMapper) {
         this.templateRepository = templateRepository;
         this.questionRepository = questionRepository;
+        this.examHistoryRawTextRepository = examHistoryRawTextRepository;
         this.restTemplate = restTemplate;
+        this.objectMapper = objectMapper;
     }
 
+    @Transactional
     public byte[] generateExamPaper(ExamPaperRequest request) {
         Template template = templateRepository.findById(request.getTemplateId())
                 .orElseThrow(() -> new RuntimeException("Template not found: " + request.getTemplateId()));
@@ -72,7 +81,24 @@ public class ExamPaperService {
                 .parts(parts)
                 .build();
 
-        return callPaperGenerator(paperGenRequest);
+        byte[] docxBytes = callPaperGenerator(paperGenRequest);
+
+        saveHistory(template, title, paperGenRequest);
+
+        return docxBytes;
+    }
+
+    private void saveHistory(Template template, String title, PaperGenRequest paperGenRequest) {
+        try {
+            String rawText = objectMapper.writeValueAsString(paperGenRequest);
+            ExamHistoryRawText history = new ExamHistoryRawText();
+            history.setTitle(title);
+            history.setRawText(rawText);
+            history.setTemplate(template);
+            examHistoryRawTextRepository.save(history);
+        } catch (Exception e) {
+            // Do not fail the generation if history saving fails
+        }
     }
 
     private List<Question> selectQuestionsForPart(TemplatePart part) {
@@ -141,6 +167,15 @@ public class ExamPaperService {
             return questionRepository.findByTopicIdInAndQuestionType(topicIds, questionType);
         }
         return questionRepository.findByTopicIdIn(topicIds);
+    }
+
+    public byte[] regenerateFromHistory(String rawText) {
+        try {
+            PaperGenRequest paperGenRequest = objectMapper.readValue(rawText, PaperGenRequest.class);
+            return callPaperGenerator(paperGenRequest);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to parse history raw text: " + e.getMessage(), e);
+        }
     }
 
     private byte[] callPaperGenerator(PaperGenRequest request) {

@@ -1,0 +1,132 @@
+<app-header [pageTitle]="'Exam History'"></app-header>
+
+<div class="history-wrapper">
+  <div class="history-container main-layout-container">
+
+    @if (loading()) {
+      <div class="loading-state">
+        <i class="pi pi-spin pi-spinner"></i>
+        <p>Loading exam history...</p>
+      </div>
+    } @else if (historyList().length === 0) {
+      <div class="empty-state">
+        <i class="pi pi-history"></i>
+        <p>No exam papers generated yet.</p>
+        <span>Generate a paper from a template to see it here.</span>
+      </div>
+    } @else {
+      <div class="app-card-list-container">
+        @for (history of historyList(); track history.id) {
+          <div class="history-card app-card-list" (click)="openPreview(history)">
+            <div class="card-header">
+              <span class="template-name">{{ history.templateTitle }}</span>
+              <span class="history-date">{{ history.createdAt | date:'medium' }}</span>
+            </div>
+            <div class="card-body">
+              <h3 class="history-title">{{ history.title }}</h3>
+            </div>
+            <div class="card-actions" (click)="$event.stopPropagation()">
+              <button
+                class="btn-download"
+                (click)="download(history, $event)"
+                [disabled]="downloading() === history.id"
+                title="Download DOCX"
+              >
+                @if (downloading() === history.id) {
+                  <i class="pi pi-spin pi-spinner"></i>
+                } @else {
+                  <i class="pi pi-download"></i>
+                }
+                Download
+              </button>
+              <button
+                class="btn-delete"
+                (click)="delete(history, $event)"
+                [disabled]="deleting() === history.id"
+                title="Delete"
+              >
+                @if (deleting() === history.id) {
+                  <i class="pi pi-spin pi-spinner"></i>
+                } @else {
+                  <i class="pi pi-trash"></i>
+                }
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+  </div>
+</div>
+
+<!-- Paper Preview Modal -->
+@if (selectedHistory() && selectedPaper()) {
+  <div class="preview-overlay" (click)="closePreview()">
+    <div class="preview-modal" (click)="$event.stopPropagation()">
+      <div class="preview-toolbar">
+        <span class="preview-toolbar-title">{{ selectedHistory()!.title }}</span>
+        <div class="preview-toolbar-actions">
+          <button
+            class="btn-download"
+            (click)="downloadSelected()"
+            [disabled]="downloading() === selectedHistory()!.id"
+          >
+            @if (downloading() === selectedHistory()!.id) {
+              <i class="pi pi-spin pi-spinner"></i> Downloading...
+            } @else {
+              <i class="pi pi-download"></i> Download
+            }
+          </button>
+          <button class="btn-close" (click)="closePreview()" title="Close">
+            <i class="pi pi-times"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="preview-body">
+        <div class="exam-paper">
+          <!-- Title -->
+          <p class="exam-title">{{ selectedPaper()!.title }}</p>
+          <!-- Subject -->
+          <p class="exam-subject">Subject: {{ selectedPaper()!.subject }}</p>
+
+          @for (part of selectedPaper()!.parts; track part.title) {
+            <p class="exam-part-title">{{ part.title }}</p>
+
+            @for (question of part.questions; track question.index) {
+              <div class="exam-question">
+                <p class="question-header">Question {{ question.index }}.</p>
+                <p class="question-text" [innerHTML]="question.text | xmlRender"></p>
+
+                @if (question.choices.length > 0) {
+                  @if (useTabLayout(question.choices)) {
+                    <div class="choices-tab-row">
+                      @for (choice of question.choices; track choice.label) {
+                        <span class="choice-tab-item">
+                          <span class="choice-label">{{ choice.label }}.</span>
+                          <span class="choice-value" [innerHTML]="choice.value | xmlRender"></span>
+                        </span>
+                      }
+                    </div>
+                  } @else {
+                    <div class="choices-list">
+                      @for (choice of question.choices; track choice.label) {
+                        <div class="choice-item">
+                          <span class="choice-label">{{ choice.label }}.</span>
+                          <span class="choice-value" [innerHTML]="choice.value | xmlRender"></span>
+                        </div>
+                      }
+                    </div>
+                  }
+                }
+              </div>
+            }
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<app-bottom-nav></app-bottom-nav>

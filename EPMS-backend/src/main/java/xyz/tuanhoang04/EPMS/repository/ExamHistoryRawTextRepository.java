@@ -10,4 +10,5 @@ public interface ExamHistoryRawTextRepository extends JpaRepository<ExamHistoryR
     List<ExamHistoryRawText> findByTemplateId(UUID templateId);
     long countByTemplateSubjectUserId(UUID userId);
     List<ExamHistoryRawText> findByTitleContainingIgnoreCase(String title);
+    List<ExamHistoryRawText> findByTemplateSubjectUserIdOrderByCreatedAtDesc(UUID userId);
 }

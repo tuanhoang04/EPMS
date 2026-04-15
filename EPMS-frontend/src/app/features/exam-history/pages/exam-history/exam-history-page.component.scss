@@ -1,0 +1,328 @@
+.history-wrapper {
+  background: #f5f5f5;
+  min-height: calc(100vh - 56px - var(--bottom-nav-height));
+}
+
+.history-container {
+  padding-top: 1rem;
+  padding-bottom: calc(var(--bottom-nav-height) + 20px);
+}
+
+.loading-state,
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 0;
+  color: #aaa;
+  text-align: center;
+
+  i {
+    font-size: 3rem;
+    margin-bottom: 16px;
+  }
+
+  p {
+    font-size: 16px;
+    margin: 0 0 8px;
+    color: #666;
+  }
+
+  span {
+    font-size: 14px;
+    color: #999;
+  }
+}
+
+// History card
+.history-card {
+  padding: 1rem 1.25rem;
+  cursor: pointer;
+  transition: box-shadow 0.15s;
+
+  &:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  }
+
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+    gap: 8px;
+
+    .template-name {
+      font-size: 12px;
+      font-weight: 600;
+      color: #0d9488;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .history-date {
+      font-size: 12px;
+      color: #999;
+    }
+  }
+
+  .card-body {
+    .history-title {
+      margin: 0 0 12px;
+      font-size: 1rem;
+      font-weight: 600;
+      color: #333;
+    }
+  }
+
+  .card-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+}
+
+// Buttons
+.btn-download {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: #0d9488;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s;
+
+  &:hover:not(:disabled) {
+    background: #0f766e;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.btn-delete {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: transparent;
+  color: #e11d48;
+  border: 1px solid #fecdd3;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+
+  &:hover:not(:disabled) {
+    background: #fff1f2;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+// Preview overlay
+.preview-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 1000;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  padding: 0;
+
+  @media (min-width: 640px) {
+    align-items: center;
+    padding: 24px;
+  }
+}
+
+.preview-modal {
+  background: #fff;
+  width: 100%;
+  max-width: 860px;
+  max-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  border-radius: 0;
+  overflow: hidden;
+
+  @media (min-width: 640px) {
+    border-radius: 12px;
+    max-height: calc(100vh - 48px);
+  }
+}
+
+.preview-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f9fafb;
+  flex-shrink: 0;
+  gap: 12px;
+
+  .preview-toolbar-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #333;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .preview-toolbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+}
+
+.btn-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: transparent;
+  color: #666;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  cursor: pointer;
+
+  &:hover {
+    background: #f3f4f6;
+    color: #333;
+  }
+}
+
+.preview-body {
+  overflow-y: auto;
+  flex: 1;
+  background: #e5e7eb;
+  padding: 24px 16px;
+
+  @media (min-width: 640px) {
+    padding: 32px 24px;
+  }
+}
+
+// Exam paper — mimics the DOCX layout
+.exam-paper {
+  background: #fff;
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 72px 72px;
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 12pt;
+  line-height: 1.5;
+  color: #111;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.12);
+
+  @media (max-width: 640px) {
+    padding: 32px 24px;
+  }
+}
+
+.exam-title {
+  text-align: center;
+  font-size: 16pt;
+  font-weight: bold;
+  margin: 0 0 6pt;
+  font-family: 'Times New Roman', Times, serif;
+}
+
+.exam-subject {
+  text-align: center;
+  font-size: 12pt;
+  margin: 0 0 20pt;
+  font-family: 'Times New Roman', Times, serif;
+}
+
+.exam-part-title {
+  font-size: 14pt;
+  font-weight: bold;
+  margin: 12pt 0 9pt;
+  font-family: 'Times New Roman', Times, serif;
+}
+
+.exam-question {
+  margin-bottom: 4pt;
+}
+
+.question-header {
+  font-size: 12pt;
+  font-weight: bold;
+  margin: 14pt 0 4pt;
+  font-family: 'Times New Roman', Times, serif;
+}
+
+.question-text {
+  font-size: 12pt;
+  margin: 0 0 4pt;
+  font-family: 'Times New Roman', Times, serif;
+
+  b { font-weight: bold; }
+  i { font-style: italic; }
+  var, code { font-family: 'Courier New', Courier, monospace; font-style: italic; }
+}
+
+// Two-column tab-style choices (like DOCX tab-stop layout)
+.choices-tab-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0 4pt;
+  margin: 0 0 4pt;
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 11pt;
+
+  @media (max-width: 480px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.choice-tab-item {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  min-width: 0;
+}
+
+// Stacked choices (for long text or more than 4 choices)
+.choices-list {
+  margin: 0 0 4pt;
+  padding-left: 18pt;
+}
+
+.choice-item {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-bottom: 3pt;
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 11pt;
+}
+
+.choice-label {
+  font-weight: normal;
+  flex-shrink: 0;
+}
+
+.choice-value {
+  b { font-weight: bold; }
+  i { font-style: italic; }
+  var, code { font-family: 'Courier New', Courier, monospace; font-style: italic; }
+}
