@@ -138,4 +138,13 @@ export class SubjectDetail implements OnInit {
   getTopicImage(topic: TopicResponse): string {
     return `https://picsum.photos/seed/topic-${topic.id}/400/200`;
   }
+
+  goToQuestions(topic: TopicResponse) {
+    this.router.navigate(['/questions'], {
+      queryParams: {
+        subjectId: topic.subjectId,
+        topicId: topic.id
+      }
+    });
+  }
 }

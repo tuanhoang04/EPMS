@@ -64,7 +64,7 @@
       @if (topics().length > 0 && viewMode() === 'grid') {
         <div class="app-card-grid">
           @for (topic of topics(); track topic.id) {
-            <div class="topic-grid-card app-card">
+            <div class="topic-grid-card app-card clickable" (click)="goToQuestions(topic)">
               <img [src]="getTopicImage(topic)" alt="topic thumbnail" />
               <div class="topic-grid-content">
                 <h3>{{ topic.name }}</h3>
@@ -72,8 +72,8 @@
                 <p class="description">{{ topic.description || 'No description' }}</p>
               </div>
               <div class="topic-grid-actions">
-                <button pButton icon="pi pi-pencil" [text]="true" [rounded]="true" severity="secondary" (click)="openEditTopic(topic)"></button>
-                <button pButton icon="pi pi-trash" [text]="true" [rounded]="true" severity="danger" (click)="confirmDeleteTopic(topic)"></button>
+                <button pButton icon="pi pi-pencil" [text]="true" [rounded]="true" severity="secondary" (click)="$event.stopPropagation(); openEditTopic(topic)"></button>
+                <button pButton icon="pi pi-trash" [text]="true" [rounded]="true" severity="danger" (click)="$event.stopPropagation(); confirmDeleteTopic(topic)"></button>
               </div>
             </div>
           }
@@ -84,15 +84,15 @@
       @if (topics().length > 0 && viewMode() === 'list') {
         <div class="app-card-list-container">
           @for (topic of topics(); track topic.id) {
-            <div class="list-item app-card-list">
+            <div class="list-item app-card-list clickable" (click)="goToQuestions(topic)">
               <div class="list-content">
                 <h3>{{ topic.name }}</h3>
                 <p class="meta">{{ topic.questionCount }} Questions</p>
                 <p class="description">{{ topic.description || 'No description' }}</p>
               </div>
               <div class="list-actions">
-                <button pButton icon="pi pi-pencil" [text]="true" [rounded]="true" severity="secondary" (click)="openEditTopic(topic)"></button>
-                <button pButton icon="pi pi-trash" [text]="true" [rounded]="true" severity="danger" (click)="confirmDeleteTopic(topic)"></button>
+                <button pButton icon="pi pi-pencil" [text]="true" [rounded]="true" severity="secondary" (click)="$event.stopPropagation(); openEditTopic(topic)"></button>
+                <button pButton icon="pi pi-trash" [text]="true" [rounded]="true" severity="danger" (click)="$event.stopPropagation(); confirmDeleteTopic(topic)"></button>
               </div>
             </div>
           }

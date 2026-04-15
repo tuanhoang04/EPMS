@@ -1,6 +1,7 @@
 import { Component, OnInit, signal, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 import { HeaderComponent } from '../../../../shared/components/header/Header.component';
 import { BottomNavComponent } from '../../../../shared/components/bottom-nav/bottom-nav.component';
 import { PaginationComponent } from '../../../../shared/components/pagination/pagination.component';
@@ -64,7 +65,8 @@ export class QuestionsPage implements OnInit {
   constructor(
     private questionService: QuestionService,
     private subjectService: SubjectService,
-    private topicService: TopicService
+    private topicService: TopicService,
+    private route: ActivatedRoute
   ) {
     // Reload questions when any filter changes
     effect(() => {
@@ -82,7 +84,41 @@ export class QuestionsPage implements OnInit {
   ngOnInit() {
     this.loadSubjects();
     this.loadAllTopics();
+    this.checkQueryParams();
     // loadQuestions() is called automatically by the effect in constructor
+  }
+
+  private checkQueryParams() {
+    const subjectId = this.route.snapshot.queryParamMap.get('subjectId');
+    const topicId = this.route.snapshot.queryParamMap.get('topicId');
+
+    if (subjectId) {
+      this.subjectService.getById(subjectId).subscribe({
+        next: (subject) => {
+          this.selectedSubject.set(subject);
+
+          if (topicId) {
+            this.topicService.getBySubjectId(subjectId).subscribe({
+              next: (topics) => {
+                this.topics.set(topics);
+                this.filteredTopics.set(topics);
+                const topic = topics.find(t => t.id === topicId);
+                if (topic) {
+                  this.selectedTopic.set(topic);
+                }
+              }
+            });
+          } else {
+            this.topicService.getBySubjectId(subjectId).subscribe({
+              next: (topics) => {
+                this.topics.set(topics);
+                this.filteredTopics.set(topics);
+              }
+            });
+          }
+        }
+      });
+    }
   }
 
   loadSubjects() {
