@@ -23,6 +23,6 @@ export class XmlRenderPipe implements PipeTransform {
       new RegExp(`<(?!/?(?:${ALLOWED})\\b)[^>]*>`, 'gi'),
       ''
     );
-    return this.sanitizer.bypassSecurityTrustHtml(safe);
+    return this.sanitizer.bypassSecurityTrustHtml(safe.replace(/\n/g, '<br>'));
   }
 }

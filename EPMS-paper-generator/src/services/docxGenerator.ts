@@ -24,15 +24,21 @@ const CHOICE_LABELS = 'ABCDEFGHIJ'.split('');
 
 function segmentsToRuns(segments: TextSegment[], size: number): TextRun[] {
   if (segments.length === 0) return [new TextRun({ text: '', font: FONT, size })];
-  return segments.map(
-    (seg) => new TextRun({
-      text: seg.text,
-      font: seg.font ?? FONT,
-      size,
-      bold: seg.bold,
-      italics: seg.italics,
-    }),
-  );
+  const runs: TextRun[] = [];
+  for (const seg of segments) {
+    const parts = seg.text.split('\n');
+    parts.forEach((part, idx) => {
+      runs.push(new TextRun({
+        text: part,
+        break: idx > 0 ? 1 : undefined,
+        font: seg.font ?? FONT,
+        size,
+        bold: seg.bold,
+        italics: seg.italics,
+      }));
+    });
+  }
+  return runs;
 }
 
 function xmlRuns(text: string, size: number): TextRun[] {
