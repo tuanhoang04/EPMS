@@ -17,4 +17,5 @@ public class QuestionRequest {
     private Difficulty difficulty;
     private QuestionType questionType;
     private UUID topicId;
+    private Integer answerLines;
 }

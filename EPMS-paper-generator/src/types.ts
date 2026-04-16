@@ -17,6 +17,7 @@ export interface QuestionData {
   questionChoices?: string | null;
   questionAnswer?: string | null;
   difficulty?: string;
+  answerLines?: number;
   questionImageBase64?: string | null;
 }
 

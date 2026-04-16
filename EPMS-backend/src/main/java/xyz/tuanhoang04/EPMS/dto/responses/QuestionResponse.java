@@ -20,6 +20,7 @@ public class QuestionResponse {
     private String questionImageBase64;
     private Difficulty difficulty;
     private QuestionType questionType;
+    private int answerLines;
     private UUID topicId;
     private String topicName;
     private UUID subjectId;

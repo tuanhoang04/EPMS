@@ -34,6 +34,7 @@ export class QuestionDetailModalComponent implements OnChanges {
   // Form fields
   questionText = signal('');
   answer = signal('');
+  answerLines = signal(1);
   choices = signal<QuestionChoice[]>([]);
   difficulty = signal(Difficulty.BEGINNER);
   questionType = signal('MULTIPLE_CHOICE_ONE_RIGHT_CHOICE');
@@ -91,6 +92,7 @@ export class QuestionDetailModalComponent implements OnChanges {
     if (!this.question) return;
     this.questionText.set(this.question.questionText);
     this.answer.set(this.question.questionAnswer || '');
+    this.answerLines.set(this.question.answerLines ?? 1);
     this.difficulty.set(this.question.difficulty);
     this.questionType.set(this.question.questionType);
     this.imageBase64.set(this.question.questionImageBase64 || null);
@@ -150,6 +152,7 @@ export class QuestionDetailModalComponent implements OnChanges {
   }
 
   onQuestionTypeChange() {
+    this.answerLines.set(1);
     if (this.questionType().startsWith('MULTIPLE_CHOICE')) {
       if (this.choices().length < 2) {
         this.choices.set([
@@ -202,14 +205,16 @@ export class QuestionDetailModalComponent implements OnChanges {
     if (!this.question || !this.selectedTopic()) return;
     this.saving.set(true);
 
+    const type = this.questionType();
     const request = {
       questionText: this.questionText(),
       questionAnswer: this.answer(),
       questionChoices: this.choices().length > 0 ? JSON.stringify(this.choices()) : null,
       questionImageBase64: this.imageBase64(),
       difficulty: this.difficulty(),
-      questionType: this.questionType(),
-      topicId: this.selectedTopic()!.id
+      questionType: type,
+      topicId: this.selectedTopic()!.id,
+      answerLines: (type === 'SHORT_ANSWER' || type === 'GAP_FILLING') ? this.answerLines() : undefined,
     };
 
     // Note: QuestionService.update is not yet defined in the provided service,

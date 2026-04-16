@@ -176,6 +176,11 @@
                 (ngModelChange)="answer.set($event)"
               ></app-xml-editor>
             </div>
+            <div class="field-group">
+              <label>Answer lines</label>
+              <input type="number" class="text-input answer-lines-input" [value]="1" [disabled]="true" />
+              <small class="hint-text">Gap-filling questions always have 1 answer line.</small>
+            </div>
           }
           @case ('SHORT_ANSWER') {
             <div class="field-group">
@@ -186,6 +191,17 @@
                 [ngModel]="answer()"
                 (ngModelChange)="answer.set($event)"
               ></app-xml-editor>
+            </div>
+            <div class="field-group">
+              <label>Answer lines</label>
+              <input
+                type="number"
+                class="text-input answer-lines-input"
+                [ngModel]="answerLines()"
+                (ngModelChange)="answerLines.set($event)"
+                min="1"
+                max="20"
+              />
             </div>
           }
         }

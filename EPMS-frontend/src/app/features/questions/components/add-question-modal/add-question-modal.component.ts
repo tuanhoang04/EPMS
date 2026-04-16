@@ -21,6 +21,7 @@ export interface QuestionFormData {
   questionType: string;
   choices: QuestionChoice[];
   answer: string;
+  answerLines: number;
   imageBase64: string | null;
   imageFileName: string;
   selectedSubject: SubjectResponse | null;
@@ -144,6 +145,7 @@ export class AddQuestionModalComponent implements OnInit, OnChanges {
         { value: '', isAnswer: false },
       ],
       answer: '',
+      answerLines: 1,
       imageBase64: null,
       imageFileName: '',
       selectedSubject: copyFrom?.selectedSubject ?? null,
@@ -191,6 +193,7 @@ export class AddQuestionModalComponent implements OnInit, OnChanges {
 
   onQuestionTypeChange(form: QuestionFormData) {
     form.answer = '';
+    form.answerLines = 1;
     form.choices = [
       { value: '', isAnswer: false },
       { value: '', isAnswer: false },
@@ -310,6 +313,7 @@ export class AddQuestionModalComponent implements OnInit, OnChanges {
         questionImageBase64: form.imageBase64,
         questionAnswer: null,
         questionChoices: null,
+        answerLines: (form.questionType === 'SHORT_ANSWER' || form.questionType === 'GAP_FILLING') ? form.answerLines : undefined,
       };
       if (form.questionType === 'MULTIPLE_CHOICE_ONE_RIGHT_CHOICE' || form.questionType === 'MULTIPLE_CHOICE_MULTIPLE_RIGHT_CHOICE') {
         req.questionChoices = JSON.stringify(form.choices.filter(c => c.value.trim()));

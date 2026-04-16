@@ -4,6 +4,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.web.bind.annotation.*;
 import xyz.tuanhoang04.EPMS.constant.Difficulty;
+import xyz.tuanhoang04.EPMS.constant.QuestionType;
 import xyz.tuanhoang04.EPMS.dto.requests.QuestionRequest;
 import xyz.tuanhoang04.EPMS.dto.responses.QuestionResponse;
 import xyz.tuanhoang04.EPMS.service.QuestionService;
@@ -26,9 +27,10 @@ public class QuestionController {
             @RequestParam(required = false) UUID subjectId,
             @RequestParam(required = false) UUID topicId,
             @RequestParam(required = false) Difficulty difficulty,
+            @RequestParam(required = false) QuestionType questionType,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        return questionService.getAllQuestions(subjectId, topicId, difficulty, PageRequest.of(page, size));
+        return questionService.getAllQuestions(subjectId, topicId, difficulty, questionType, PageRequest.of(page, size));
     }
 
     @GetMapping("/{id}")

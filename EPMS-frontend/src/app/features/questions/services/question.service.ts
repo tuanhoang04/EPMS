@@ -17,6 +17,7 @@ export interface QuestionResponse {
   questionImageBase64: string;
   difficulty: Difficulty;
   questionType: string;
+  answerLines: number;
   topicId: string;
   topicName: string;
   subjectId: string;
@@ -39,11 +40,12 @@ export class QuestionService {
 
   constructor(private http: HttpClient) {}
 
-  getAll(subjectId?: string, topicId?: string, difficulty?: string, page: number = 0, size: number = 10): Observable<QuestionPage> {
+  getAll(subjectId?: string, topicId?: string, difficulty?: string, questionType?: string, page: number = 0, size: number = 10): Observable<QuestionPage> {
     let params = new HttpParams();
     if (subjectId) params = params.set('subjectId', subjectId);
     if (topicId) params = params.set('topicId', topicId);
     if (difficulty) params = params.set('difficulty', difficulty);
+    if (questionType) params = params.set('questionType', questionType);
     params = params.set('page', page.toString());
     params = params.set('size', size.toString());
 
@@ -62,6 +64,7 @@ export class QuestionService {
     difficulty: string;
     questionType: string;
     topicId: string;
+    answerLines?: number;
   }): Observable<QuestionResponse> {
     return this.http.post<QuestionResponse>(this.apiUrl, request);
   }
@@ -74,6 +77,7 @@ export class QuestionService {
     difficulty: string;
     questionType: string;
     topicId: string;
+    answerLines?: number;
   }): Observable<QuestionResponse> {
     return this.http.put<QuestionResponse>(`${this.apiUrl}/${id}`, request);
   }

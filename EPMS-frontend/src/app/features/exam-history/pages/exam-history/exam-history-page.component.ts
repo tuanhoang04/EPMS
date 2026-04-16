@@ -20,6 +20,7 @@ interface QuestionView {
   index: number;
   text: string;
   type: string;
+  answerLines: number;
   imageUrl: string | null;  // absolute URL to the history image served by the backend
   choices: ChoiceItem[];
 }
@@ -152,6 +153,7 @@ export class ExamHistoryPage implements OnInit, OnDestroy {
           index: questionIndex++,
           text: q.questionText,
           type: q.questionType,
+          answerLines: q.answerLines ?? 1,
           imageUrl: this.buildImageUrl(q.questionImagePath),
           choices: this.buildChoices(q),
         };
@@ -200,8 +202,8 @@ export class ExamHistoryPage implements OnInit, OnDestroy {
   useTabLayout(choices: ChoiceItem[]): boolean {
     if (choices.length > 4) return false;
     // Matches docxGenerator: estimateChoiceLength = label.length + 2 + plain.length
-    // threshold = CHARS_PER_LINE * COL_WIDTH / 100 = 90 * 0.25 = 22.5
+    // threshold = CHARS_PER_LINE * COL_WIDTH / 100 = 97 * 0.25 = 24.25
     const maxLen = Math.max(...choices.map(c => c.label.length + 2 + c.value.length));
-    return maxLen <= 22.5;
+    return maxLen <= 24.25;
   }
 }

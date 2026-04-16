@@ -9,6 +9,7 @@ export interface PaperGenQuestionDto {
   questionChoices: string | null;
   questionAnswer: string | null;
   difficulty: string;
+  answerLines: number;
   questionImagePath: string | null;
 }
 

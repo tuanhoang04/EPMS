@@ -1,5 +1,6 @@
 import {
   AlignmentType,
+  BorderStyle,
   Document,
   ImageRun,
   Packer,
@@ -16,10 +17,10 @@ const QUESTION_HEADER_SIZE = 24;
 const QUESTION_TEXT_SIZE = 24;
 const CHOICE_SIZE = 22;
 const COL_WIDTH = 25; // percent
-const PRINTABLE_WIDTH_TWIPS = 9026; // 11906 - 1440*2
-const PRINTABLE_HEIGHT_TWIPS = 13958; // 16838 - 1440*2
-const COL_WIDTH_TWIPS = Math.floor(PRINTABLE_WIDTH_TWIPS * (COL_WIDTH / 100)); // ~2256
-const CHARS_PER_LINE = 90;
+const PRINTABLE_WIDTH_TWIPS = 9746; // 11906 - 1080*2
+const PRINTABLE_HEIGHT_TWIPS = 14678; // 16838 - 1080*2
+const COL_WIDTH_TWIPS = Math.floor(PRINTABLE_WIDTH_TWIPS * (COL_WIDTH / 100)); // ~2436
+const CHARS_PER_LINE = 97; // scaled with printable width
 const CHOICE_LABELS = 'ABCDEFGHIJ'.split('');
 
 // Image size constraints (docx transformation units: 1 unit = 1/100 inch = 1440/100 twips)
@@ -192,6 +193,9 @@ function createQuestionBlock(index: number, question: QuestionData): Paragraph[]
   const isTrueFalse = question.questionType === 'TRUE_FALSE';
   const hasChoices = isMultipleChoice || isTrueFalse;
   const hasImage = !!(question.questionImageBase64?.trim());
+  const isAnswerLine =
+    question.questionType === 'SHORT_ANSWER' || question.questionType === 'GAP_FILLING';
+  const answerLines = isAnswerLine ? Math.max(1, question.answerLines ?? 1) : 0;
 
   items.push(
     new Paragraph({
@@ -211,7 +215,7 @@ function createQuestionBlock(index: number, question: QuestionData): Paragraph[]
   items.push(
     new Paragraph({
       children: xmlRuns(question.questionText || '', QUESTION_TEXT_SIZE),
-      keepNext: hasImage || hasChoices,
+      keepNext: hasImage || hasChoices || isAnswerLine,
       spacing: { after: 80 },
     }),
   );
@@ -251,6 +255,20 @@ function createQuestionBlock(index: number, question: QuestionData): Paragraph[]
           ));
         });
       }
+    }
+  }
+
+  if (answerLines > 0) {
+    for (let i = 0; i < answerLines; i++) {
+      items.push(
+        new Paragraph({
+          children: [new TextRun({ text: '', font: FONT, size: QUESTION_TEXT_SIZE })],
+          border: {
+            bottom: { style: BorderStyle.DOTTED, size: 6, color: '000000', space: 1 },
+          },
+          spacing: { before: 200, after: 120 },
+        }),
+      );
     }
   }
 
@@ -299,7 +317,7 @@ export async function generateExamDocx(request: GenerateRequest): Promise<Buffer
       properties: {
         page: {
           size: { width: 11906, height: 16838 },
-          margin: { top: 1440, right: 1440, bottom: 1440, left: 1440 },
+          margin: { top: 1080, right: 1080, bottom: 1080, left: 1080 },
         },
       },
       children,

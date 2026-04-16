@@ -35,7 +35,7 @@ public class QuestionService {
         this.topicRepository = topicRepository;
     }
 
-    public Page<QuestionResponse> getAllQuestions(UUID subjectId, UUID topicId, Difficulty difficulty, Pageable pageable) {
+    public Page<QuestionResponse> getAllQuestions(UUID subjectId, UUID topicId, Difficulty difficulty, xyz.tuanhoang04.EPMS.constant.QuestionType questionType, Pageable pageable) {
         Specification<Question> spec = Specification.where(null);
 
         if (subjectId != null) {
@@ -48,6 +48,10 @@ public class QuestionService {
 
         if (difficulty != null) {
             spec = spec.and((root, query, cb) -> cb.equal(root.get("difficulty"), difficulty));
+        }
+
+        if (questionType != null) {
+            spec = spec.and((root, query, cb) -> cb.equal(root.get("questionType"), questionType));
         }
 
         return questionRepository.findAll(spec, pageable)
@@ -77,6 +81,7 @@ public class QuestionService {
         question.setDifficulty(request.getDifficulty());
         question.setQuestionType(request.getQuestionType());
         question.setTopic(topic);
+        question.setAnswerLines(resolveAnswerLines(request.getAnswerLines(), request.getQuestionType()));
 
         return mapToResponse(questionRepository.save(question));
     }
@@ -104,6 +109,7 @@ public class QuestionService {
         question.setDifficulty(request.getDifficulty());
         question.setQuestionType(request.getQuestionType());
         question.setTopic(topic);
+        question.setAnswerLines(resolveAnswerLines(request.getAnswerLines(), request.getQuestionType()));
 
         return mapToResponse(questionRepository.save(question));
     }
@@ -162,6 +168,11 @@ public class QuestionService {
         }
     }
 
+    private int resolveAnswerLines(Integer requested, xyz.tuanhoang04.EPMS.constant.QuestionType type) {
+        if (xyz.tuanhoang04.EPMS.constant.QuestionType.GAP_FILLING.equals(type)) return 1;
+        return (requested != null && requested >= 1) ? requested : 1;
+    }
+
     private QuestionResponse mapToResponse(Question question) {
         String base64Image = null;
         if (question.getQuestionImagePath() != null) {
@@ -176,6 +187,7 @@ public class QuestionService {
                 .questionImageBase64(base64Image)
                 .difficulty(question.getDifficulty())
                 .questionType(question.getQuestionType())
+                .answerLines(question.getAnswerLines())
                 .topicId(question.getTopic().getId())
                 .topicName(question.getTopic().getName())
                 .subjectId(question.getTopic().getSubject().getId())

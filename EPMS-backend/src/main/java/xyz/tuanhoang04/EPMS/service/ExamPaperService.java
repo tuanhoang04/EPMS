@@ -76,6 +76,7 @@ public class ExamPaperService {
                                     .questionChoices(q.getQuestionChoices())
                                     .questionAnswer(q.getQuestionAnswer())
                                     .difficulty(q.getDifficulty().name())
+                                    .answerLines(q.getAnswerLines())
                                     // base64 used for the paper generator call; path is the copy stored in history
                                     .questionImageBase64(loadImageAsBase64(q.getQuestionImagePath()))
                                     .questionImagePath(copyImageForHistory(q.getQuestionImagePath()))

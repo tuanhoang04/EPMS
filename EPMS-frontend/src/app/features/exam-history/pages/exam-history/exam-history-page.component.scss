@@ -335,3 +335,11 @@
   i { font-style: italic; }
   var, code { font-family: 'Courier New', Courier, monospace; font-style: italic; }
 }
+
+// Dotted answer line for SHORT_ANSWER and GAP_FILLING questions
+.answer-line {
+  width: 100%;
+  border-bottom: 1.5px dotted #222;
+  margin: 10pt 0 6pt;
+  height: 0;
+}

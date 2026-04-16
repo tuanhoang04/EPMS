@@ -126,6 +126,12 @@
                     </div>
                   }
                 }
+
+                @if (question.type === 'SHORT_ANSWER' || question.type === 'GAP_FILLING') {
+                  @for (_ of [].constructor(question.answerLines); track $index) {
+                    <div class="answer-line"></div>
+                  }
+                }
               </div>
             }
           }

@@ -72,6 +72,23 @@
         ></p-autocomplete>
       </div>
 
+      <div class="filter-item">
+        <label>Question Type</label>
+        <p-autocomplete
+          [suggestions]="filteredQuestionTypes()"
+          (completeMethod)="searchQuestionTypes($event)"
+          [ngModel]="selectedQuestionType()"
+          (onSelect)="onQuestionTypeChange($event)"
+          (onClear)="onQuestionTypeChange(null)"
+          optionLabel="label"
+          [dropdown]="true"
+          [forceSelection]="true"
+          [completeOnFocus]="true"
+          placeholder="Select Type"
+          appendTo="body"
+        ></p-autocomplete>
+      </div>
+
       <div class="filter-view-toggle">
         <button
           pButton

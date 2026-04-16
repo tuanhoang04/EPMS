@@ -52,14 +52,25 @@ export class QuestionsPage implements OnInit {
   selectedSubject = signal<any | null>(null);
   selectedTopic = signal<any | null>(null);
   selectedDifficulty = signal<any | null>(null);
+  selectedQuestionType = signal<any | null>(null);
 
   filteredSubjects = signal<SubjectResponse[]>([]);
   filteredTopics = signal<TopicResponse[]>([]);
   filteredDifficulties = signal<{label: string, value: string | null}[]>([]);
+  filteredQuestionTypes = signal<{label: string, value: string | null}[]>([]);
 
   difficultyOptions = [
     { label: 'All Difficulties', value: null },
     ...Object.values(Difficulty).map(d => ({ label: d, value: d }))
+  ];
+
+  questionTypeOptions = [
+    { label: 'All Types', value: null },
+    { label: 'Single Choice', value: 'MULTIPLE_CHOICE_ONE_RIGHT_CHOICE' },
+    { label: 'Multiple Choice', value: 'MULTIPLE_CHOICE_MULTIPLE_RIGHT_CHOICE' },
+    { label: 'True / False', value: 'TRUE_FALSE' },
+    { label: 'Gap Filling', value: 'GAP_FILLING' },
+    { label: 'Short Answer', value: 'SHORT_ANSWER' },
   ];
 
   constructor(
@@ -74,6 +85,7 @@ export class QuestionsPage implements OnInit {
       this.selectedSubject();
       this.selectedTopic();
       this.selectedDifficulty();
+      this.selectedQuestionType();
       this.pageIndex();
       this.pageSize();
 
@@ -146,11 +158,13 @@ export class QuestionsPage implements OnInit {
     const subjectId = this.selectedSubject()?.id;
     const topicId = this.selectedTopic()?.id;
     const difficultyValue = this.selectedDifficulty()?.value;
+    const questionTypeValue = this.selectedQuestionType()?.value;
 
     this.questionService.getAll(
       subjectId || undefined,
       topicId || undefined,
       difficultyValue || undefined,
+      questionTypeValue || undefined,
       this.pageIndex(),
       this.pageSize()
     ).subscribe({
@@ -217,6 +231,13 @@ export class QuestionsPage implements OnInit {
     this.pageIndex.set(0);
   }
 
+  onQuestionTypeChange(event: any) {
+    const item = event && 'originalEvent' in event ? event.value : event;
+    const questionType = item && typeof item === 'object' && 'value' in item ? item : null;
+    this.selectedQuestionType.set(questionType);
+    this.pageIndex.set(0);
+  }
+
   searchSubjects(event: AutoCompleteCompleteEvent) {
     const query = event.query.toLowerCase();
     this.filteredSubjects.set(
@@ -235,6 +256,13 @@ export class QuestionsPage implements OnInit {
     const query = event.query.toLowerCase();
     this.filteredDifficulties.set(
       this.difficultyOptions.filter(d => d.label.toLowerCase().includes(query))
+    );
+  }
+
+  searchQuestionTypes(event: AutoCompleteCompleteEvent) {
+    const query = event.query.toLowerCase();
+    this.filteredQuestionTypes.set(
+      this.questionTypeOptions.filter(t => t.label.toLowerCase().includes(query))
     );
   }
 

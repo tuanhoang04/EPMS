@@ -24,6 +24,8 @@ public class Question extends BaseEntity {
     @Column(length = 50)
     private QuestionType questionType;
 
+    private int answerLines = 1;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name="topic_id")
     private Topic topic;
