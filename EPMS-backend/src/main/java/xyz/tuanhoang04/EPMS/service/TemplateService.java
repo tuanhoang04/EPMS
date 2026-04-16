@@ -121,7 +121,15 @@ public class TemplateService {
             part = templatePartRepository.save(part);
 
             if (partRequest.getDifficulties() != null) {
+                // Enforce one row per difficulty level — last entry wins when duplicates are sent
+                java.util.LinkedHashMap<xyz.tuanhoang04.EPMS.constant.Difficulty, TemplatePartDifficultyRequest> unique =
+                        new java.util.LinkedHashMap<>();
                 for (TemplatePartDifficultyRequest diffRequest : partRequest.getDifficulties()) {
+                    if (diffRequest.getDifficulty() != null) {
+                        unique.put(diffRequest.getDifficulty(), diffRequest);
+                    }
+                }
+                for (TemplatePartDifficultyRequest diffRequest : unique.values()) {
                     TemplatePartDifficulty diff = new TemplatePartDifficulty();
                     diff.setTemplatePart(part);
                     diff.setDifficulty(diffRequest.getDifficulty());
@@ -149,6 +157,16 @@ public class TemplateService {
                                     .collect(Collectors.toList())
                             : new ArrayList<>();
 
+                    List<TemplatePartResponse.TemplatePartDifficultyResponse> difficultyResponses =
+                            part.getTemplatePartDifficulties() != null
+                                    ? part.getTemplatePartDifficulties().stream()
+                                            .map(d -> TemplatePartResponse.TemplatePartDifficultyResponse.builder()
+                                                    .difficulty(d.getDifficulty().name())
+                                                    .difficultyValue(d.getDifficultyValue())
+                                                    .build())
+                                            .collect(Collectors.toList())
+                                    : new ArrayList<>();
+
                     return TemplatePartResponse.builder()
                             .id(part.getId())
                             .title(part.getTitle())
@@ -156,6 +174,7 @@ public class TemplateService {
                             .numberOfQuestions(part.getNumberOfQuestions())
                             .questionType(part.getQuestionType() != null ? part.getQuestionType().name() : null)
                             .topics(topicResponses)
+                            .difficulties(difficultyResponses)
                             .build();
                 })
                 .collect(Collectors.toList());

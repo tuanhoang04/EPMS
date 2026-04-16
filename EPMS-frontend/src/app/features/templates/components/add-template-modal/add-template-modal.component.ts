@@ -3,9 +3,14 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AutoCompleteModule, AutoCompleteCompleteEvent } from 'primeng/autocomplete';
 import { ModalComponent } from '../../../../shared/components/modal/modal.component';
-import { TemplateService, TemplatePartRequest } from '../../services/template.service';
+import { TemplateService } from '../../services/template.service';
 import { SubjectService, SubjectResponse } from '../../../homepage/services/subject.service';
 import { TopicService, TopicResponse } from '../../../homepage/services/topic.service';
+
+export interface DifficultyFormRow {
+  difficulty: string;
+  difficultyValue: number;
+}
 
 export interface TemplatePartFormData {
   uid: number;
@@ -14,8 +19,16 @@ export interface TemplatePartFormData {
   questionType: string | null;
   selectedTopics: TopicResponse[];
   filteredTopics: TopicResponse[];
+  difficulties: DifficultyFormRow[];
   isValid: boolean;
 }
+
+const ALL_DIFFICULTIES = [
+  { value: 'BEGINNER',     label: 'Beginner' },
+  { value: 'EASY',         label: 'Easy' },
+  { value: 'INTERMEDIATE', label: 'Intermediate' },
+  { value: 'ADVANCED',     label: 'Advanced' },
+];
 
 @Component({
   selector: 'app-add-template-modal',
@@ -38,6 +51,8 @@ export class AddTemplateModalComponent implements OnInit, OnChanges {
   topics: TopicResponse[] = [];
   parts = signal<TemplatePartFormData[]>([]);
   saving = signal(false);
+
+  allDifficulties = ALL_DIFFICULTIES;
 
   private uidCounter = 1;
 
@@ -118,6 +133,7 @@ export class AddTemplateModalComponent implements OnInit, OnChanges {
       questionType: null,
       selectedTopics: [],
       filteredTopics: [...this.topics],
+      difficulties: [],
       isValid: false
     };
   }
@@ -136,6 +152,43 @@ export class AddTemplateModalComponent implements OnInit, OnChanges {
       this.parts.update(p => [...p]);
     }
   }
+
+  // ── Difficulty helpers ──────────────────────────────────────────────────────
+
+  availableDifficultiesFor(part: TemplatePartFormData) {
+    const used = new Set(part.difficulties.map(d => d.difficulty));
+    return ALL_DIFFICULTIES.filter(d => !used.has(d.value));
+  }
+
+  addDifficulty(part: TemplatePartFormData) {
+    const available = this.availableDifficultiesFor(part);
+    if (available.length === 0) return;
+    part.difficulties = [...part.difficulties, { difficulty: available[0].value, difficultyValue: 0 }];
+    this.parts.update(p => [...p]);
+  }
+
+  removeDifficulty(part: TemplatePartFormData, index: number) {
+    part.difficulties = part.difficulties.filter((_, i) => i !== index);
+    this.parts.update(p => [...p]);
+  }
+
+  onDifficultyLevelChange(part: TemplatePartFormData, row: DifficultyFormRow, newValue: string) {
+    const alreadyUsed = part.difficulties.some(d => d !== row && d.difficulty === newValue);
+    if (!alreadyUsed) {
+      row.difficulty = newValue;
+      this.parts.update(p => [...p]);
+    }
+  }
+
+  difficultyTotal(part: TemplatePartFormData): number {
+    return part.difficulties.reduce((sum, d) => sum + (d.difficultyValue || 0), 0);
+  }
+
+  difficultyLabelFor(value: string): string {
+    return ALL_DIFFICULTIES.find(d => d.value === value)?.label ?? value;
+  }
+
+  // ── Subject / topic autocomplete ────────────────────────────────────────────
 
   onSubjectSelect(event: any) {
     const subject = event && 'originalEvent' in event ? event.value : event;
@@ -190,7 +243,7 @@ export class AddTemplateModalComponent implements OnInit, OnChanges {
         numberOfQuestions: p.numberOfQuestions,
         questionType: p.questionType,
         topicIds: p.selectedTopics.map(t => t.id),
-        difficulties: [] // Future extension
+        difficulties: p.difficulties.map(d => ({ difficulty: d.difficulty, difficultyValue: d.difficultyValue }))
       }))
     };
 

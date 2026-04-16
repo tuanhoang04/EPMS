@@ -3,10 +3,15 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AutoCompleteModule, AutoCompleteCompleteEvent } from 'primeng/autocomplete';
 import { ModalComponent } from '../../../../shared/components/modal/modal.component';
-import { TemplateService, TemplateResponse, TemplatePartResponse } from '../../services/template.service';
+import { TemplateService, TemplateResponse } from '../../services/template.service';
 import { SubjectService, SubjectResponse } from '../../../homepage/services/subject.service';
 import { TopicService, TopicResponse } from '../../../homepage/services/topic.service';
 import { ExamPaperService } from '../../services/exam-paper.service';
+
+export interface DifficultyFormRow {
+  difficulty: string;
+  difficultyValue: number;
+}
 
 export interface TemplatePartFormData {
   uid: number;
@@ -15,8 +20,16 @@ export interface TemplatePartFormData {
   questionType: string | null;
   selectedTopics: TopicResponse[];
   filteredTopics: TopicResponse[];
+  difficulties: DifficultyFormRow[];
   isValid: boolean;
 }
+
+const ALL_DIFFICULTIES = [
+  { value: 'BEGINNER',     label: 'Beginner' },
+  { value: 'EASY',         label: 'Easy' },
+  { value: 'INTERMEDIATE', label: 'Intermediate' },
+  { value: 'ADVANCED',     label: 'Advanced' },
+];
 
 @Component({
   selector: 'app-template-detail-modal',
@@ -43,6 +56,8 @@ export class TemplateDetailModalComponent implements OnChanges {
   subjects: SubjectResponse[] = [];
   filteredSubjects: SubjectResponse[] = [];
   topics: TopicResponse[] = [];
+
+  allDifficulties = ALL_DIFFICULTIES;
 
   private uidCounter = 1;
 
@@ -73,7 +88,6 @@ export class TemplateDetailModalComponent implements OnChanges {
       next: (data) => {
         this.subjects = data.content;
         this.filteredSubjects = [...this.subjects];
-        // Re-resolve selectedSubject from full list so autocomplete displays correctly
         if (this.template) {
           const found = this.subjects.find(s => s.id === this.template!.subjectId);
           if (found) this.selectedSubject = found;
@@ -104,14 +118,13 @@ export class TemplateDetailModalComponent implements OnChanges {
       questionType: p.questionType,
       selectedTopics: p.topics.map(t => ({ id: t.id, name: t.name, subjectId: this.template!.subjectId }) as TopicResponse),
       filteredTopics: [],
+      difficulties: (p.difficulties ?? []).map(d => ({ difficulty: d.difficulty, difficultyValue: Number(d.difficultyValue) })),
       isValid: true
     }));
 
-    // Always end with one empty part for adding
     partForms.push(this.createEmptyPart());
     this.parts.set(partForms);
 
-    // Load topics for the subject
     if (this.template.subjectId) {
       this.loadTopics(this.template.subjectId);
     }
@@ -125,6 +138,7 @@ export class TemplateDetailModalComponent implements OnChanges {
       questionType: null,
       selectedTopics: [],
       filteredTopics: [...this.topics],
+      difficulties: [],
       isValid: false
     };
   }
@@ -139,7 +153,6 @@ export class TemplateDetailModalComponent implements OnChanges {
       this.parts.update(p => [...p]);
     }
 
-    // Auto-add trailing empty part when last part becomes valid
     const all = this.parts();
     const lastPart = all[all.length - 1];
     if (lastPart?.isValid) {
@@ -147,12 +160,48 @@ export class TemplateDetailModalComponent implements OnChanges {
     }
   }
 
+  // ── Difficulty helpers ──────────────────────────────────────────────────────
+
+  availableDifficultiesFor(part: TemplatePartFormData) {
+    const used = new Set(part.difficulties.map(d => d.difficulty));
+    return ALL_DIFFICULTIES.filter(d => !used.has(d.value));
+  }
+
+  addDifficulty(part: TemplatePartFormData) {
+    const available = this.availableDifficultiesFor(part);
+    if (available.length === 0) return;
+    part.difficulties = [...part.difficulties, { difficulty: available[0].value, difficultyValue: 0 }];
+    this.parts.update(p => [...p]);
+  }
+
+  removeDifficulty(part: TemplatePartFormData, index: number) {
+    part.difficulties = part.difficulties.filter((_, i) => i !== index);
+    this.parts.update(p => [...p]);
+  }
+
+  onDifficultyLevelChange(part: TemplatePartFormData, row: DifficultyFormRow, newValue: string) {
+    const alreadyUsed = part.difficulties.some(d => d !== row && d.difficulty === newValue);
+    if (!alreadyUsed) {
+      row.difficulty = newValue;
+      this.parts.update(p => [...p]);
+    }
+  }
+
+  difficultyTotal(part: TemplatePartFormData): number {
+    return part.difficulties.reduce((sum, d) => sum + (d.difficultyValue || 0), 0);
+  }
+
+  difficultyLabelFor(value: string): string {
+    return ALL_DIFFICULTIES.find(d => d.value === value)?.label ?? value;
+  }
+
+  // ── Subject / topic autocomplete ────────────────────────────────────────────
+
   onSubjectSelect(event: any) {
     const subject = event && 'originalEvent' in event ? event.value : event;
     this.selectedSubject = subject;
     if (subject) {
       this.loadTopics(subject.id);
-      // Clear topics from all parts since subject changed
       this.parts.update(parts => parts.map(p => ({ ...p, selectedTopics: [], filteredTopics: [] })));
     }
   }
@@ -205,7 +254,7 @@ export class TemplateDetailModalComponent implements OnChanges {
         numberOfQuestions: p.numberOfQuestions,
         questionType: p.questionType,
         topicIds: p.selectedTopics.map(t => t.id),
-        difficulties: []
+        difficulties: p.difficulties.map(d => ({ difficulty: d.difficulty, difficultyValue: d.difficultyValue }))
       }))
     };
 

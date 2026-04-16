@@ -7,6 +7,11 @@ export interface TemplatePartTopicResponse {
   name: string;
 }
 
+export interface TemplatePartDifficultyResponse {
+  difficulty: string;
+  difficultyValue: number;
+}
+
 export interface TemplatePartResponse {
   id: string;
   title: string;
@@ -14,6 +19,7 @@ export interface TemplatePartResponse {
   numberOfQuestions: number;
   questionType: string | null;
   topics: TemplatePartTopicResponse[];
+  difficulties: TemplatePartDifficultyResponse[];
 }
 
 export interface TemplateResponse {

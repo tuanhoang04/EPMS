@@ -118,6 +118,62 @@
                 }
               </div>
 
+              <!-- Difficulty Distribution -->
+              <div class="difficulty-section">
+                <div class="difficulty-section-header">
+                  <label>Difficulty Distribution <span class="optional">(Optional)</span></label>
+                  @if (availableDifficultiesFor(part).length > 0) {
+                    <button class="add-difficulty-btn" type="button" (click)="addDifficulty(part)">
+                      <i class="pi pi-plus"></i> Add
+                    </button>
+                  }
+                </div>
+
+                @if (part.difficulties.length === 0) {
+                  <p class="difficulty-empty-hint">No distribution set — questions will be picked randomly from all difficulties.</p>
+                } @else {
+                  <div class="difficulty-rows">
+                    @for (row of part.difficulties; track $index; let idx = $index) {
+                      <div class="difficulty-row">
+                        <div class="select-wrapper difficulty-select-wrapper">
+                          <select
+                            class="custom-select"
+                            [ngModel]="row.difficulty"
+                            (ngModelChange)="onDifficultyLevelChange(part, row, $event)"
+                          >
+                            <option [value]="row.difficulty">{{ difficultyLabelFor(row.difficulty) }}</option>
+                            @for (d of availableDifficultiesFor(part); track d.value) {
+                              <option [value]="d.value">{{ d.label }}</option>
+                            }
+                          </select>
+                          <i class="pi pi-chevron-down select-arrow"></i>
+                        </div>
+                        <div class="difficulty-pct-wrapper">
+                          <input
+                            type="number"
+                            class="text-input difficulty-pct-input"
+                            [(ngModel)]="row.difficultyValue"
+                            min="0"
+                            max="100"
+                            placeholder="0"
+                          />
+                          <span class="pct-symbol">%</span>
+                        </div>
+                        <button class="icon-btn danger" type="button" (click)="removeDifficulty(part, idx)">
+                          <i class="pi pi-times"></i>
+                        </button>
+                      </div>
+                    }
+                  </div>
+                  <div class="difficulty-total" [class.over]="difficultyTotal(part) > 100">
+                    Total: {{ difficultyTotal(part) }}%
+                    @if (difficultyTotal(part) > 100) {
+                      <span class="over-warning"> — exceeds 100%</span>
+                    }
+                  </div>
+                }
+              </div>
+
             </div>
           </div>
         }

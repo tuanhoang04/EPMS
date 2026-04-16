@@ -396,3 +396,106 @@
     }
   }
 }
+
+/* ── Difficulty distribution ─────────────────── */
+.difficulty-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.difficulty-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+
+    .optional {
+      font-weight: 400;
+      color: #999;
+      font-size: 12px;
+    }
+  }
+}
+
+.add-difficulty-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  background: #f0fdf9;
+  color: #0d9488;
+  border: 1px solid #99f6e4;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+
+  &:hover {
+    background: #ccfbf1;
+  }
+}
+
+.difficulty-empty-hint {
+  font-size: 12px;
+  color: #999;
+  margin: 0;
+  font-style: italic;
+}
+
+.difficulty-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.difficulty-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.difficulty-select-wrapper {
+  flex: 1;
+  min-width: 120px;
+}
+
+.difficulty-pct-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: 84px;
+  flex-shrink: 0;
+}
+
+.difficulty-pct-input {
+  width: 60px !important;
+  padding: 6px 8px !important;
+  text-align: right;
+}
+
+.pct-symbol {
+  font-size: 13px;
+  color: #666;
+  flex-shrink: 0;
+}
+
+.difficulty-total {
+  font-size: 12px;
+  font-weight: 600;
+  color: #555;
+  text-align: right;
+
+  &.over {
+    color: #dc2626;
+  }
+}
+
+.over-warning {
+  font-weight: 400;
+}
