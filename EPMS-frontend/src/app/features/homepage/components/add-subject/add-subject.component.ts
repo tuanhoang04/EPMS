@@ -1,4 +1,4 @@
-import { Component, Output, EventEmitter, Input, OnInit } from '@angular/core';
+import { Component, Output, EventEmitter, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
@@ -12,7 +12,7 @@ import { SubjectService, SubjectRequest, SubjectResponse } from '../../services/
   templateUrl: './add-subject.component.html',
   styleUrl: './add-subject.component.scss'
 })
-export class AddSubjectComponent implements OnInit {
+export class AddSubjectComponent implements OnChanges {
   @Input() subjectToEdit: SubjectResponse | null = null;
   @Output() saved = new EventEmitter<void>();
   @Output() cancelled = new EventEmitter<void>();
@@ -23,10 +23,10 @@ export class AddSubjectComponent implements OnInit {
 
   constructor(private subjectService: SubjectService) {}
 
-  ngOnInit() {
-    if (this.subjectToEdit) {
-      this.name = this.subjectToEdit.name;
-      this.description = this.subjectToEdit.description;
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['subjectToEdit']) {
+      this.name = this.subjectToEdit?.name ?? '';
+      this.description = this.subjectToEdit?.description ?? '';
     }
   }
 

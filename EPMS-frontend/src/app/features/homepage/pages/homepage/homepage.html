@@ -43,7 +43,7 @@
             <p class="meta">{{ subject.questionCount }} Questions &ndash; {{ subject.topicCount }} Topics</p>
             <small>{{ subject.description || '&nbsp;' }}</small>
           </div>
-          <button pButton icon="pi pi-ellipsis-h" class="menu-btn" [text]="true" severity="secondary" (click)="$event.stopPropagation()"></button>
+          <button pButton icon="pi pi-ellipsis-h" class="menu-btn" [text]="true" severity="secondary" (click)="$event.stopPropagation(); openSubjectMenu($event, subject)"></button>
         </div>
       }
     </div>
@@ -60,7 +60,7 @@
             <p class="meta">{{ subject.questionCount }} Questions &ndash; {{ subject.topicCount }} Topics</p>
             <small>{{ subject.description || 'No description' }}</small>
           </div>
-          <button pButton icon="pi pi-ellipsis-h" [text]="true" severity="secondary" (click)="$event.stopPropagation()"></button>
+          <button pButton icon="pi pi-ellipsis-h" [text]="true" severity="secondary" (click)="$event.stopPropagation(); openSubjectMenu($event, subject)"></button>
         </div>
       }
     </div>
@@ -82,6 +82,9 @@
 <!-- Bottom navigation -->
 <app-bottom-nav />
 
+<!-- Subject context menu -->
+<p-menu #subjectMenu [model]="subjectMenuItems" [popup]="true" appendTo="body" />
+
 <!-- Add Subject Modal -->
 <app-modal
   [visible]="showAddModal()"
@@ -92,5 +95,18 @@
     (saved)="onSubjectSaved()"
     (cancelled)="onModalClosed()"
   />
-  </app-modal>
+</app-modal>
+
+<!-- Edit Subject Modal -->
+<app-modal
+  [visible]="showEditModal()"
+  title="Edit Subject"
+  (closed)="onEditModalClosed()"
+>
+  <app-add-subject
+    [subjectToEdit]="selectedSubject()"
+    (saved)="onEditSaved()"
+    (cancelled)="onEditModalClosed()"
+  />
+</app-modal>
 </div>

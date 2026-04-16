@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, effect, OnInit, signal } from '@angular/core';
+import { Component, effect, OnInit, signal, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { HeaderComponent } from '../../../../shared/components/header/Header.component';
 import { BottomNavComponent } from '../../../../shared/components/bottom-nav/bottom-nav.component';
@@ -9,6 +9,9 @@ import { PaginationComponent } from '../../../../shared/components/pagination/pa
 import { SubjectService, SubjectResponse, SubjectPage } from '../../services/subject.service';
 import { ButtonModule } from 'primeng/button';
 import { PaginatorModule } from 'primeng/paginator';
+import { MenuModule } from 'primeng/menu';
+import { Menu } from 'primeng/menu';
+import { MenuItem } from 'primeng/api';
 import { AuthService } from '../../../../core/services/auth.service';
 
 @Component({
@@ -18,6 +21,7 @@ import { AuthService } from '../../../../core/services/auth.service';
     HeaderComponent,
     BottomNavComponent,
     ButtonModule,
+    MenuModule,
     ModalComponent,
     AddSubjectComponent,
     PaginationComponent,
@@ -26,14 +30,32 @@ import { AuthService } from '../../../../core/services/auth.service';
   styleUrl: './homepage.scss',
 })
 export class Homepage implements OnInit {
+  @ViewChild('subjectMenu') subjectMenu!: Menu;
+
   page = signal<SubjectPage | null>(null);
 
   viewMode = signal<'grid' | 'list'>('grid');
   showAddModal = signal(false);
+  showEditModal = signal(false);
+  selectedSubject = signal<SubjectResponse | null>(null);
 
   pageIndex = signal(0);
   pageSize = signal(16);
   readonly pageSizeOptions = [8, 16, 24, 32];
+
+  subjectMenuItems: MenuItem[] = [
+    {
+      label: 'Edit',
+      icon: 'pi pi-pencil',
+      command: () => this.showEditModal.set(true)
+    },
+    {
+      label: 'Delete',
+      icon: 'pi pi-trash',
+      styleClass: 'danger-item',
+      command: () => this.deleteSubject()
+    }
+  ];
 
   constructor(
     private subjectService: SubjectService,
@@ -75,14 +97,42 @@ export class Homepage implements OnInit {
     this.router.navigate(['/subjects', id]);
   }
 
+  openSubjectMenu(event: MouseEvent, subject: SubjectResponse) {
+    this.selectedSubject.set(subject);
+    this.subjectMenu.toggle(event);
+  }
+
+  deleteSubject() {
+    const subject = this.selectedSubject();
+    if (!subject) return;
+    if (!confirm(`Delete "${subject.name}"?`)) return;
+    this.subjectService.delete(subject.id).subscribe({
+      next: () => {
+        this.pageIndex.set(0);
+        this.loadSubjects();
+      }
+    });
+  }
+
   onSubjectSaved() {
     this.showAddModal.set(false);
     this.pageIndex.set(0);
     this.loadSubjects();
   }
 
+  onEditSaved() {
+    this.showEditModal.set(false);
+    this.selectedSubject.set(null);
+    this.loadSubjects();
+  }
+
   onModalClosed() {
     this.showAddModal.set(false);
+  }
+
+  onEditModalClosed() {
+    this.showEditModal.set(false);
+    this.selectedSubject.set(null);
   }
 
   getSubjectImage(subject: SubjectResponse): string {
