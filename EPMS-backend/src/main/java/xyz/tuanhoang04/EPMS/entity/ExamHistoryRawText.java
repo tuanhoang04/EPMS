@@ -13,7 +13,7 @@ public class ExamHistoryRawText extends BaseEntity {
     @Column(nullable = false)
     private String title;
     private String description;
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "LONGTEXT")
     private String rawText;
 
     @ManyToOne(fetch = FetchType.LAZY)
