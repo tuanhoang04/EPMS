@@ -92,7 +92,9 @@
           <p class="exam-subject">Subject: {{ selectedPaper()!.subject }}</p>
 
           @for (part of selectedPaper()!.parts; track part.title) {
-            <p class="exam-part-title">{{ part.title }}</p>
+            @if (selectedPaper()!.parts.length > 1) {
+              <p class="exam-part-title">{{ part.title }}</p>
+            }
 
             @for (question of part.questions; track question.index) {
               <div class="exam-question">

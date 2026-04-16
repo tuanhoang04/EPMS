@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HeaderComponent } from '../../../../shared/components/header/Header.component';
 import { BottomNavComponent } from '../../../../shared/components/bottom-nav/bottom-nav.component';
@@ -44,7 +44,7 @@ const CHOICE_LABELS = 'ABCDEFGHIJ'.split('');
   templateUrl: './exam-history-page.component.html',
   styleUrl: './exam-history-page.component.scss',
 })
-export class ExamHistoryPage implements OnInit {
+export class ExamHistoryPage implements OnInit, OnDestroy {
   historyList = signal<ExamHistoryResponse[]>([]);
   loading = signal(true);
   selectedHistory = signal<ExamHistoryResponse | null>(null);
@@ -56,6 +56,10 @@ export class ExamHistoryPage implements OnInit {
 
   ngOnInit() {
     this.load();
+  }
+
+  ngOnDestroy() {
+    document.body.style.overflow = '';
   }
 
   load() {
@@ -75,11 +79,13 @@ export class ExamHistoryPage implements OnInit {
 
     this.selectedHistory.set(history);
     this.selectedPaper.set(this.buildPaperView(paper));
+    document.body.style.overflow = 'hidden';
   }
 
   closePreview() {
     this.selectedHistory.set(null);
     this.selectedPaper.set(null);
+    document.body.style.overflow = '';
   }
 
   download(history: ExamHistoryResponse, event: Event) {

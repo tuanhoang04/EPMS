@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ButtonModule } from 'primeng/button';
 
@@ -9,7 +9,7 @@ import { ButtonModule } from 'primeng/button';
   templateUrl: './modal.component.html',
   styleUrl: './modal.component.scss'
 })
-export class ModalComponent {
+export class ModalComponent implements OnChanges, OnDestroy {
   @Input() visible = false;
   @Input() title = '';
   @Input() closable = true;
@@ -20,6 +20,16 @@ export class ModalComponent {
   @Input() saveSaving = false;
   @Output() closed = new EventEmitter<void>();
   @Output() saveClicked = new EventEmitter<void>();
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['visible']) {
+      document.body.style.overflow = changes['visible'].currentValue ? 'hidden' : '';
+    }
+  }
+
+  ngOnDestroy() {
+    document.body.style.overflow = '';
+  }
 
   close() {
     if (this.closable) {

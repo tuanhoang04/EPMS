@@ -213,7 +213,6 @@ export class TemplateDetailModalComponent implements OnChanges {
       next: () => {
         this.saving.set(false);
         this.saved.emit();
-        this.close();
       },
       error: () => this.saving.set(false)
     });

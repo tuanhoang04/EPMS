@@ -90,7 +90,7 @@ function choiceSeparateParagraph(label: string, xmlText: string, keepNext: boole
       new TextRun({ text: `${label}. `, font: FONT, size: CHOICE_SIZE }),
       ...xmlRuns(xmlText, CHOICE_SIZE),
     ],
-    indent: { left: 360, firstLine: 0 },
+    indent: { left: 0, firstLine: 0 },
     keepNext,
     spacing: { after: 60 },
   });
@@ -281,12 +281,14 @@ export async function generateExamDocx(request: GenerateRequest): Promise<Buffer
   let questionIndex = 1;
 
   for (const part of request.parts) {
-    children.push(
-      new Paragraph({
-        children: [new TextRun({ text: part.title, font: FONT, size: 28, bold: true })],
-        spacing: { before: 240, after: 180 },
-      }),
-    );
+    if (request.parts.length > 1) {
+      children.push(
+        new Paragraph({
+          children: [new TextRun({ text: part.title, font: FONT, size: 28, bold: true })],
+          spacing: { before: 240, after: 180 },
+        }),
+      );
+    }
     for (const question of part.questions) {
       children.push(...createQuestionBlock(questionIndex++, question));
     }
