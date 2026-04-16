@@ -15,8 +15,13 @@ import xyz.tuanhoang04.EPMS.repository.ExamHistoryRawTextRepository;
 import xyz.tuanhoang04.EPMS.repository.QuestionRepository;
 import xyz.tuanhoang04.EPMS.repository.TemplateRepository;
 
+import java.io.IOException;
 import java.math.BigDecimal;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
+import java.util.Base64;
 import java.util.stream.Collectors;
 
 @Service
@@ -66,6 +71,7 @@ public class ExamPaperService {
                                     .questionChoices(q.getQuestionChoices())
                                     .questionAnswer(q.getQuestionAnswer())
                                     .difficulty(q.getDifficulty().name())
+                                    .questionImageBase64(loadImageAsBase64(q.getQuestionImagePath()))
                                     .build())
                             .collect(Collectors.toList());
                     return PaperGenPartDto.builder()
@@ -160,6 +166,21 @@ public class ExamPaperService {
                     topicIds, List.of(difficulty), questionType);
         }
         return questionRepository.findByTopicIdInAndDifficultyIn(topicIds, List.of(difficulty));
+    }
+
+    private String loadImageAsBase64(String imagePath) {
+        if (imagePath == null) return null;
+        try {
+            Path path = Paths.get(imagePath);
+            if (!Files.exists(path)) return null;
+            byte[] bytes = Files.readAllBytes(path);
+            int dot = imagePath.lastIndexOf('.');
+            String ext = dot > 0 ? imagePath.substring(dot + 1) : "png";
+            return "data:image/" + ext + ";base64," + Base64.getEncoder().encodeToString(bytes);
+        } catch (Exception e) {
+            System.err.println("Error reading question image for paper generation: " + e.getMessage());
+            return null;
+        }
     }
 
     private List<Question> fetchAll(List<UUID> topicIds, QuestionType questionType) {

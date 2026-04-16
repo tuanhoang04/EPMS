@@ -1,6 +1,7 @@
 import {
   AlignmentType,
   Document,
+  ImageRun,
   Packer,
   Paragraph,
   TextRun,
@@ -16,9 +17,17 @@ const QUESTION_TEXT_SIZE = 24;
 const CHOICE_SIZE = 22;
 const COL_WIDTH = 25; // percent
 const PRINTABLE_WIDTH_TWIPS = 9026; // 11906 - 1440*2
+const PRINTABLE_HEIGHT_TWIPS = 13958; // 16838 - 1440*2
 const COL_WIDTH_TWIPS = Math.floor(PRINTABLE_WIDTH_TWIPS * (COL_WIDTH / 100)); // ~2256
 const CHARS_PER_LINE = 90;
 const CHOICE_LABELS = 'ABCDEFGHIJ'.split('');
+
+// Image size constraints (docx transformation units: 1 unit = 1/100 inch = 1440/100 twips)
+const TWIPS_PER_IMG_UNIT = 1440 / 100;
+const MAX_IMAGE_WIDTH_PCT = 85;  // % of printable width
+const MAX_IMAGE_HEIGHT_PCT = 45; // % of printable height
+const MAX_IMG_W = Math.floor(PRINTABLE_WIDTH_TWIPS / TWIPS_PER_IMG_UNIT * MAX_IMAGE_WIDTH_PCT / 100);
+const MAX_IMG_H = Math.floor(PRINTABLE_HEIGHT_TWIPS / TWIPS_PER_IMG_UNIT * MAX_IMAGE_HEIGHT_PCT / 100);
 
 // ── XML → TextRun helpers ─────────────────────────────────────────────────────
 
@@ -87,6 +96,91 @@ function choiceSeparateParagraph(label: string, xmlText: string, keepNext: boole
   });
 }
 
+// ── Image helpers ─────────────────────────────────────────────────────────────
+
+function getImageDimensions(buf: Buffer): { width: number; height: number } | null {
+  // PNG: 8-byte signature then IHDR (4 len + 4 type + 4 width + 4 height)
+  if (
+    buf.length >= 24 &&
+    buf[0] === 0x89 && buf[1] === 0x50 && buf[2] === 0x4e && buf[3] === 0x47
+  ) {
+    return { width: buf.readUInt32BE(16), height: buf.readUInt32BE(20) };
+  }
+
+  // JPEG: starts with FF D8, then scan for SOF marker
+  if (buf.length >= 4 && buf[0] === 0xff && buf[1] === 0xd8) {
+    let offset = 2;
+    while (offset < buf.length - 8) {
+      if (buf[offset] !== 0xff) break;
+      const marker = buf[offset + 1];
+      if (marker === 0xda) break; // Start of scan — no more headers
+      const segLen = buf.readUInt16BE(offset + 2);
+      if (
+        (marker >= 0xc0 && marker <= 0xc3) ||
+        (marker >= 0xc5 && marker <= 0xc7) ||
+        (marker >= 0xc9 && marker <= 0xcb) ||
+        (marker >= 0xcd && marker <= 0xcf)
+      ) {
+        return { height: buf.readUInt16BE(offset + 5), width: buf.readUInt16BE(offset + 7) };
+      }
+      offset += 2 + segLen;
+    }
+  }
+
+  return null;
+}
+
+function calcImageSize(
+  origW: number,
+  origH: number,
+  maxW: number,
+  maxH: number,
+): { width: number; height: number } {
+  // Try fitting to maxW, height proportional
+  const heightAtMaxW = Math.round((origH / origW) * maxW);
+  if (heightAtMaxW <= maxH) {
+    return { width: maxW, height: heightAtMaxW };
+  }
+  // Height overflows — fit to maxH, width proportional
+  return { width: Math.round((origW / origH) * maxH), height: maxH };
+}
+
+function createImageParagraph(dataUrl: string, keepNext: boolean): Paragraph | null {
+  try {
+    let b64: string;
+    let type: 'png' | 'jpg' | 'gif' | 'bmp' = 'png';
+
+    if (dataUrl.includes(',')) {
+      const comma = dataUrl.indexOf(',');
+      const header = dataUrl.slice(0, comma);
+      b64 = dataUrl.slice(comma + 1);
+      if (header.includes('image/jpeg') || header.includes('image/jpg')) type = 'jpg';
+      else if (header.includes('image/gif')) type = 'gif';
+      else if (header.includes('image/bmp')) type = 'bmp';
+      else type = 'png';
+    } else {
+      b64 = dataUrl;
+    }
+
+    const buf = Buffer.from(b64, 'base64');
+    const dims = getImageDimensions(buf);
+    if (!dims || dims.width === 0 || dims.height === 0) return null;
+
+    const { width, height } = calcImageSize(dims.width, dims.height, MAX_IMG_W, MAX_IMG_H);
+
+    return new Paragraph({
+      children: [
+        new ImageRun({ type, data: buf, transformation: { width, height } }),
+      ],
+      alignment: AlignmentType.CENTER,
+      keepNext,
+      spacing: { before: 80, after: 120 },
+    });
+  } catch {
+    return null;
+  }
+}
+
 // ── Question block ────────────────────────────────────────────────────────────
 
 function createQuestionBlock(index: number, question: QuestionData): Paragraph[] {
@@ -97,6 +191,7 @@ function createQuestionBlock(index: number, question: QuestionData): Paragraph[]
     question.questionType === 'MULTIPLE_CHOICE_MULTIPLE_RIGHT_CHOICE';
   const isTrueFalse = question.questionType === 'TRUE_FALSE';
   const hasChoices = isMultipleChoice || isTrueFalse;
+  const hasImage = !!(question.questionImageBase64?.trim());
 
   items.push(
     new Paragraph({
@@ -116,10 +211,17 @@ function createQuestionBlock(index: number, question: QuestionData): Paragraph[]
   items.push(
     new Paragraph({
       children: xmlRuns(question.questionText || '', QUESTION_TEXT_SIZE),
-      keepNext: hasChoices,
+      keepNext: hasImage || hasChoices,
       spacing: { after: 80 },
     }),
   );
+
+  if (hasImage) {
+    const imgParagraph = createImageParagraph(question.questionImageBase64!, hasChoices);
+    if (imgParagraph) {
+      items.push(imgParagraph);
+    }
+  }
 
   if (isTrueFalse) {
     items.push(choiceTabLine(

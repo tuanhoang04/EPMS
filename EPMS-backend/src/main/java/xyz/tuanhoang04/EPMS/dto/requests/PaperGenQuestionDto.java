@@ -14,4 +14,5 @@ public class PaperGenQuestionDto {
     private String questionChoices;
     private String questionAnswer;
     private String difficulty;
+    private String questionImageBase64;
 }

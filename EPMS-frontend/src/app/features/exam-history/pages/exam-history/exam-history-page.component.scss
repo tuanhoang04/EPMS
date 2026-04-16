@@ -280,6 +280,15 @@
   var, code { font-family: 'Courier New', Courier, monospace; font-style: italic; }
 }
 
+.question-image {
+  display: block;
+  margin: 6pt auto 8pt;
+  max-width: 85%;
+  max-height: 45vh;
+  width: auto;
+  height: auto;
+}
+
 // Two-column tab-style choices (like DOCX tab-stop layout)
 .choices-tab-row {
   display: grid;

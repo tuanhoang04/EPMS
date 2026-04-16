@@ -17,6 +17,7 @@ export interface QuestionData {
   questionChoices?: string | null;
   questionAnswer?: string | null;
   difficulty?: string;
+  questionImageBase64?: string | null;
 }
 
 export interface PartData {

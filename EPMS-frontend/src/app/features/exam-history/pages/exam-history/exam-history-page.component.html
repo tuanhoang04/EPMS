@@ -99,6 +99,10 @@
                 <p class="question-header">Question {{ question.index }}.</p>
                 <p class="question-text" [innerHTML]="question.text | xmlRender"></p>
 
+                @if (question.imageBase64) {
+                  <img class="question-image" [src]="question.imageBase64" alt="Question image" />
+                }
+
                 @if (question.choices.length > 0) {
                   @if (useTabLayout(question.choices)) {
                     <div class="choices-tab-row">

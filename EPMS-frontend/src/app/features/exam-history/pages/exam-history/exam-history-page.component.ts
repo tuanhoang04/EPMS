@@ -20,6 +20,7 @@ interface QuestionView {
   index: number;
   text: string;
   type: string;
+  imageBase64: string | null;
   choices: ChoiceItem[];
 }
 
@@ -145,6 +146,7 @@ export class ExamHistoryPage implements OnInit {
           index: questionIndex++,
           text: q.questionText,
           type: q.questionType,
+          imageBase64: q.questionImageBase64 ?? null,
           choices: this.buildChoices(q),
         };
         return view;
