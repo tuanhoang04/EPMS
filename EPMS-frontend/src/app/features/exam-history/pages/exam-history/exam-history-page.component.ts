@@ -20,7 +20,7 @@ interface QuestionView {
   index: number;
   text: string;
   type: string;
-  imageBase64: string | null;
+  imageUrl: string | null;  // absolute URL to the history image served by the backend
   choices: ChoiceItem[];
 }
 
@@ -146,7 +146,7 @@ export class ExamHistoryPage implements OnInit {
           index: questionIndex++,
           text: q.questionText,
           type: q.questionType,
-          imageBase64: q.questionImageBase64 ?? null,
+          imageUrl: this.buildImageUrl(q.questionImagePath),
           choices: this.buildChoices(q),
         };
         return view;
@@ -154,6 +154,14 @@ export class ExamHistoryPage implements OnInit {
     }));
 
     return { title: paper.title, subject: paper.subject, parts };
+  }
+
+  private buildImageUrl(imagePath: string | null | undefined): string | null {
+    if (!imagePath) return null;
+    // imagePath is a relative server path like "uploads/exam-history-images/xxx.png";
+    // extract the filename and resolve against the dedicated serving endpoint
+    const filename = imagePath.replace(/\\/g, '/').split('/').pop();
+    return `http://localhost:8080/api/exam-history/images/${filename}`;
   }
 
   private buildChoices(q: PaperGenQuestionDto): ChoiceItem[] {

@@ -21,6 +21,7 @@ import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.*;
 import java.util.Base64;
 import java.util.stream.Collectors;
@@ -28,6 +29,9 @@ import java.util.stream.Collectors;
 @Service
 @Transactional(readOnly = true)
 public class ExamPaperService {
+
+    // Directory for question images copied into history records (separate from the live question images)
+    private static final String HISTORY_IMAGE_DIR = "uploads/exam-history-images/";
 
     @Value("${paper.generator.url:http://localhost:3001}")
     private String paperGeneratorUrl;
@@ -72,7 +76,9 @@ public class ExamPaperService {
                                     .questionChoices(q.getQuestionChoices())
                                     .questionAnswer(q.getQuestionAnswer())
                                     .difficulty(q.getDifficulty().name())
+                                    // base64 used for the paper generator call; path is the copy stored in history
                                     .questionImageBase64(loadImageAsBase64(q.getQuestionImagePath()))
+                                    .questionImagePath(copyImageForHistory(q.getQuestionImagePath()))
                                     .build())
                             .collect(Collectors.toList());
                     return PaperGenPartDto.builder()
@@ -92,6 +98,14 @@ public class ExamPaperService {
                 .build();
 
         byte[] docxBytes = callPaperGenerator(paperGenRequest);
+
+        // Strip base64 image data before persisting history: the copied file path is already stored,
+        // so embedding the full data URL would bloat the LONGTEXT column unnecessarily.
+        for (PaperGenPartDto part : parts) {
+            for (PaperGenQuestionDto dto : part.getQuestions()) {
+                dto.setQuestionImageBase64(null);
+            }
+        }
 
         saveHistory(template, title, paperGenRequest);
 
@@ -489,9 +503,80 @@ public class ExamPaperService {
     public byte[] regenerateFromHistory(String rawText) {
         try {
             PaperGenRequest paperGenRequest = objectMapper.readValue(rawText, PaperGenRequest.class);
+            // History stores image paths; load base64 from each path before calling the generator
+            enrichRequestWithImages(paperGenRequest);
             return callPaperGenerator(paperGenRequest);
         } catch (Exception e) {
             throw new RuntimeException("Failed to parse history raw text: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * For each question in the request that has a {@code questionImagePath} but no
+     * {@code questionImageBase64}, loads the file from disk and populates the base64 field.
+     * Used when regenerating a DOCX from stored history (paths are stored; base64 is needed by the generator).
+     */
+    private void enrichRequestWithImages(PaperGenRequest request) {
+        for (PaperGenPartDto part : request.getParts()) {
+            for (PaperGenQuestionDto q : part.getQuestions()) {
+                if (q.getQuestionImagePath() != null && q.getQuestionImageBase64() == null) {
+                    q.setQuestionImageBase64(loadImageAsBase64(q.getQuestionImagePath()));
+                }
+            }
+        }
+    }
+
+    /**
+     * Copies a question's image file to the dedicated history-images directory and returns
+     * the new relative path. Returns {@code null} if the source path is null or the file
+     * is missing — the question will simply have no image in the history record.
+     */
+    private String copyImageForHistory(String originalPath) {
+        if (originalPath == null) return null;
+        try {
+            Path src = Paths.get(originalPath);
+            if (!Files.exists(src)) return null;
+
+            int dot = originalPath.lastIndexOf('.');
+            String ext = dot > 0 ? originalPath.substring(dot + 1) : "png";
+
+            Path destDir = Paths.get(HISTORY_IMAGE_DIR);
+            if (!Files.exists(destDir)) {
+                Files.createDirectories(destDir);
+            }
+
+            String newFileName = UUID.randomUUID().toString() + "." + ext;
+            Files.copy(src, destDir.resolve(newFileName), StandardCopyOption.REPLACE_EXISTING);
+            return HISTORY_IMAGE_DIR + newFileName;
+        } catch (Exception e) {
+            System.err.println("Could not copy image for history: " + e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Parses a history {@code rawText} JSON and deletes any history image files referenced
+     * by {@code questionImagePath} fields. Called when a history record is deleted so that
+     * orphaned image copies in {@value #HISTORY_IMAGE_DIR} are cleaned up.
+     */
+    public void deleteHistoryImages(String rawText) {
+        if (rawText == null || rawText.isBlank()) return;
+        try {
+            PaperGenRequest request = objectMapper.readValue(rawText, PaperGenRequest.class);
+            for (PaperGenPartDto part : request.getParts()) {
+                for (PaperGenQuestionDto q : part.getQuestions()) {
+                    String path = q.getQuestionImagePath();
+                    if (path != null && !path.isBlank()) {
+                        try {
+                            Files.deleteIfExists(Paths.get(path));
+                        } catch (Exception e) {
+                            System.err.println("Could not delete history image " + path + ": " + e.getMessage());
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Could not parse history raw text for image cleanup: " + e.getMessage());
         }
     }
 

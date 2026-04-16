@@ -93,6 +93,10 @@ public class QuestionService {
         question.setQuestionChoices(request.getQuestionChoices());
 
         if (request.getQuestionImageBase64() != null && !request.getQuestionImageBase64().isEmpty()) {
+            // Delete the old image file before saving the replacement
+            if (question.getQuestionImagePath() != null) {
+                deleteImageFile(question.getQuestionImagePath());
+            }
             String imagePath = saveImage(request.getQuestionImageBase64());
             question.setQuestionImagePath(imagePath);
         }
@@ -105,10 +109,23 @@ public class QuestionService {
     }
 
     public void deleteQuestion(UUID id) {
-        if (!questionRepository.existsById(id)) {
-            throw new RuntimeException("Question not found");
+        Question question = questionRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Question not found"));
+
+        // Delete the associated image file from disk before removing the DB record
+        if (question.getQuestionImagePath() != null) {
+            deleteImageFile(question.getQuestionImagePath());
         }
+
         questionRepository.deleteById(id);
+    }
+
+    private void deleteImageFile(String imagePath) {
+        try {
+            Files.deleteIfExists(Paths.get(imagePath));
+        } catch (Exception e) {
+            System.err.println("Could not delete image file " + imagePath + ": " + e.getMessage());
+        }
     }
 
     private String saveImage(String base64Data) {

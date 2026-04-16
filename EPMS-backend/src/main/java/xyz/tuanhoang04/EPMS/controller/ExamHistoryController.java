@@ -6,6 +6,10 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import xyz.tuanhoang04.EPMS.dto.responses.ExamHistoryResponse;
 import xyz.tuanhoang04.EPMS.service.ExamHistoryService;
 
@@ -44,5 +48,40 @@ public class ExamHistoryController {
     public ResponseEntity<Void> delete(@PathVariable UUID id, Authentication authentication) {
         examHistoryService.deleteHistory(id, authentication.getName());
         return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * Serves a history image file by filename. Images live in the dedicated
+     * {@code uploads/exam-history-images/} directory and are distinct from live question images.
+     * Requires authentication (enforced globally by Spring Security).
+     * Filenames are UUIDs so they are practically unguessable.
+     */
+    @GetMapping("/images/{filename}")
+    public ResponseEntity<byte[]> getHistoryImage(@PathVariable String filename) {
+        // Guard against path traversal
+        if (filename.contains("..") || filename.contains("/") || filename.contains("\\")) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        Path imagePath = Paths.get("uploads/exam-history-images/", filename);
+        if (!Files.exists(imagePath)) {
+            return ResponseEntity.notFound().build();
+        }
+
+        try {
+            byte[] bytes = Files.readAllBytes(imagePath);
+            String ext = filename.contains(".")
+                    ? filename.substring(filename.lastIndexOf('.') + 1).toLowerCase()
+                    : "png";
+            MediaType mediaType = switch (ext) {
+                case "jpg", "jpeg" -> MediaType.IMAGE_JPEG;
+                case "gif"         -> MediaType.parseMediaType("image/gif");
+                case "bmp"         -> MediaType.parseMediaType("image/bmp");
+                default            -> MediaType.IMAGE_PNG;
+            };
+            return ResponseEntity.ok().contentType(mediaType).body(bytes);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
     }
 }

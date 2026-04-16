@@ -9,7 +9,7 @@ export interface PaperGenQuestionDto {
   questionChoices: string | null;
   questionAnswer: string | null;
   difficulty: string;
-  questionImageBase64: string | null;
+  questionImagePath: string | null;
 }
 
 export interface PaperGenPartDto {

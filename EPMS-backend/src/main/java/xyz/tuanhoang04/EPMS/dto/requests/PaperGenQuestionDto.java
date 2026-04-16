@@ -14,5 +14,6 @@ public class PaperGenQuestionDto {
     private String questionChoices;
     private String questionAnswer;
     private String difficulty;
-    private String questionImageBase64;
+    private String questionImageBase64;  // populated when calling the paper generator; null in stored history
+    private String questionImagePath;    // relative file path stored in history JSON; null when calling the generator
 }

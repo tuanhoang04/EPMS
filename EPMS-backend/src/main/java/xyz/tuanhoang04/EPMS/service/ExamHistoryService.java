@@ -67,6 +67,9 @@ public class ExamHistoryService {
             throw new RuntimeException("Access denied");
         }
 
+        // Delete the copied image files stored with this history record before removing the DB row
+        examPaperService.deleteHistoryImages(history.getRawText());
+
         examHistoryRawTextRepository.delete(history);
     }
 
