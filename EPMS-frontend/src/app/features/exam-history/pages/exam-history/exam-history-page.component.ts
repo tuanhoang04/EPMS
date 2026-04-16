@@ -158,10 +158,13 @@ export class ExamHistoryPage implements OnInit {
 
   private buildChoices(q: PaperGenQuestionDto): ChoiceItem[] {
     if (q.questionType === 'TRUE_FALSE') {
-      return [
-        { label: 'A', value: 'True' },
-        { label: 'B', value: 'False' },
-      ];
+      if (!q.questionChoices) return [];
+      try {
+        const parsed: { value: string }[] = JSON.parse(q.questionChoices);
+        return parsed.map((c, i) => ({ label: CHOICE_LABELS[i] ?? String.fromCharCode(65 + i), value: c.value }));
+      } catch {
+        return [];
+      }
     }
     if (
       q.questionType === 'MULTIPLE_CHOICE_ONE_RIGHT_CHOICE' ||

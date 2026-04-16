@@ -223,11 +223,11 @@ function createQuestionBlock(index: number, question: QuestionData): Paragraph[]
     }
   }
 
-  if (isTrueFalse) {
-    items.push(choiceTabLine(
-      [{ value: 'True', isAnswer: false }, { value: 'False', isAnswer: false }],
-      ['A', 'B'],
-    ));
+  if (isTrueFalse && question.questionChoices) {
+    try {
+      const tfChoices = JSON.parse(question.questionChoices) as QuestionChoice[];
+      items.push(choiceTabLine(tfChoices, ['A', 'B']));
+    } catch { /* ignore malformed data */ }
   } else if (isMultipleChoice && question.questionChoices) {
     let choices: QuestionChoice[] = [];
     try {

@@ -1,5 +1,6 @@
 package xyz.tuanhoang04.EPMS.service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
@@ -80,6 +81,9 @@ public class ExamPaperService {
                             .build();
                 })
                 .collect(Collectors.toList());
+
+        // Shuffle choices and balance the answer-key distribution across all eligible questions
+        balanceAnswerDistribution(parts);
 
         PaperGenRequest paperGenRequest = PaperGenRequest.builder()
                 .title(title)
@@ -188,6 +192,298 @@ public class ExamPaperService {
             return questionRepository.findByTopicIdInAndQuestionType(topicIds, questionType);
         }
         return questionRepository.findByTopicIdIn(topicIds);
+    }
+
+    // ── Answer-key distribution balancing ────────────────────────────────────────
+
+    /**
+     * Tracks a single eligible question during the answer-distribution balancing pass.
+     * Holds a reference to the mutable DTO and the target position (0-indexed) that the
+     * correct answer should occupy after shuffling.
+     */
+    private static class QuestionSlot {
+        final PaperGenQuestionDto dto;
+        final int choiceCount;   // number of choices (2 for TRUE_FALSE)
+        int targetPosition;      // 0-indexed; 0 → label "A", 1 → "B", etc.
+
+        QuestionSlot(PaperGenQuestionDto dto, int choiceCount) {
+            this.dto = dto;
+            this.choiceCount = choiceCount;
+            this.targetPosition = 0;
+        }
+
+        /** Letter label corresponding to the current targetPosition ('A', 'B', …). */
+        String answerLabel() {
+            return String.valueOf((char) ('A' + targetPosition));
+        }
+    }
+
+    /** No more than this many consecutive questions in the paper may share the same answer label. */
+    private static final int MAX_CONSECUTIVE_SAME_ANSWER = 4;
+
+    /**
+     * Main entry point for answer-key balancing. Operates on the already-assembled
+     * {@code parts} list and modifies each eligible DTO's {@code questionChoices} in place.
+     *
+     * <p>Only {@code MULTIPLE_CHOICE_ONE_RIGHT_CHOICE} and {@code TRUE_FALSE} questions
+     * participate — multiple-correct-answer questions are left untouched because they have
+     * no single "answer position" to balance.</p>
+     *
+     * <p>Steps:</p>
+     * <ol>
+     *   <li>Collect eligible questions in paper order.</li>
+     *   <li>Group by choice count; within each group assign answer positions so each label
+     *       (A, B, C, …) is used as equally as possible (floor or ceil of N/K times).</li>
+     *   <li>Shuffle each question's choices to put the correct answer at the assigned
+     *       position; wrong choices are randomly reordered.</li>
+     *   <li>Scan the full ordered list and fix any run of more than
+     *       {@link #MAX_CONSECUTIVE_SAME_ANSWER} consecutive identical answer labels by
+     *       swapping target positions with a later question of the same choice count.</li>
+     * </ol>
+     *
+     * <p>If the question count for a given choice-count group is too small to achieve
+     * perfect balance, the best approximation is used without throwing an error.</p>
+     */
+    private void balanceAnswerDistribution(List<PaperGenPartDto> parts) {
+        List<QuestionSlot> slots = collectEligibleSlots(parts);
+        if (slots.isEmpty()) return;
+
+        assignBalancedPositions(slots);
+
+        for (QuestionSlot slot : slots) {
+            applyTargetPosition(slot);
+        }
+
+        enforceMaxConsecutiveStreak(slots);
+    }
+
+    /**
+     * Walks every part and question in paper order and wraps each eligible question
+     * (MCQ one-right-choice or TRUE_FALSE) in a {@link QuestionSlot}.
+     * Questions that cannot be parsed or lack answer data are silently skipped.
+     */
+    private List<QuestionSlot> collectEligibleSlots(List<PaperGenPartDto> parts) {
+        List<QuestionSlot> slots = new ArrayList<>();
+        for (PaperGenPartDto part : parts) {
+            for (PaperGenQuestionDto q : part.getQuestions()) {
+                String type = q.getQuestionType();
+                if ("TRUE_FALSE".equals(type) && q.getQuestionAnswer() != null) {
+                    slots.add(new QuestionSlot(q, 2));
+                } else if ("MULTIPLE_CHOICE_ONE_RIGHT_CHOICE".equals(type)) {
+                    List<Map<String, Object>> choices = parseChoicesJson(q.getQuestionChoices());
+                    if (choices != null && choices.size() >= 2) {
+                        slots.add(new QuestionSlot(q, choices.size()));
+                    }
+                }
+            }
+        }
+        return slots;
+    }
+
+    /**
+     * Groups slots by their choice count, then for each group computes and assigns a
+     * target answer position such that each position (0, 1, 2, …) is used either
+     * {@code floor(N/K)} or {@code ceil(N/K)} times.
+     *
+     * <p>The assignment list is shuffled before being handed out so consecutive questions
+     * in the paper are unlikely to receive the same position purely from the distribution
+     * algorithm.</p>
+     */
+    private void assignBalancedPositions(List<QuestionSlot> slots) {
+        Map<Integer, List<QuestionSlot>> groups = new LinkedHashMap<>();
+        for (QuestionSlot slot : slots) {
+            groups.computeIfAbsent(slot.choiceCount, k -> new ArrayList<>()).add(slot);
+        }
+
+        for (Map.Entry<Integer, List<QuestionSlot>> entry : groups.entrySet()) {
+            int k = entry.getKey();
+            List<QuestionSlot> group = entry.getValue();
+            List<Integer> positions = buildBalancedPositionList(group.size(), k);
+            for (int i = 0; i < group.size(); i++) {
+                group.get(i).targetPosition = positions.get(i);
+            }
+        }
+    }
+
+    /**
+     * Builds a shuffled list of {@code n} target positions (0-indexed) for {@code k} choices
+     * such that position {@code p} appears {@code floor(n/k) + (p < n%k ? 1 : 0)} times.
+     * The shuffle randomises which questions receive which position.
+     */
+    private List<Integer> buildBalancedPositionList(int n, int k) {
+        List<Integer> positions = new ArrayList<>(n);
+        int base  = n / k;
+        int extra = n % k; // first `extra` positions get one additional assignment
+        for (int p = 0; p < k; p++) {
+            int count = base + (p < extra ? 1 : 0);
+            for (int j = 0; j < count; j++) {
+                positions.add(p);
+            }
+        }
+        Collections.shuffle(positions);
+        return positions;
+    }
+
+    /**
+     * Dispatches to the appropriate shuffle helper based on question type.
+     * MCQ: moves the {@code isAnswer=true} choice to {@code slot.targetPosition} and
+     * randomly re-orders all wrong choices.
+     * TRUE_FALSE: reconstructs the two choices from {@code questionAnswer}, placing the
+     * correct one at {@code slot.targetPosition}, and stores the result in
+     * {@code questionChoices} so the generator uses the shuffled order.
+     */
+    private void applyTargetPosition(QuestionSlot slot) {
+        if ("TRUE_FALSE".equals(slot.dto.getQuestionType())) {
+            applyTrueFalsePosition(slot.dto, slot.targetPosition);
+        } else {
+            List<Map<String, Object>> choices = parseChoicesJson(slot.dto.getQuestionChoices());
+            if (choices != null) {
+                applyMcqPosition(slot.dto, choices, slot.targetPosition);
+            }
+        }
+    }
+
+    /**
+     * Re-orders a MCQ question's choices so the correct answer ({@code isAnswer=true})
+     * ends up at {@code targetPosition}. Wrong choices are randomly shuffled into the
+     * remaining positions. Updates {@code dto.questionChoices} in place.
+     *
+     * @param dto            the question DTO whose choices will be rewritten
+     * @param choices        current parsed choices; exactly one must have {@code isAnswer=true}
+     * @param targetPosition 0-indexed position for the correct answer
+     */
+    private void applyMcqPosition(PaperGenQuestionDto dto,
+                                   List<Map<String, Object>> choices,
+                                   int targetPosition) {
+        Map<String, Object> correctChoice = null;
+        List<Map<String, Object>> wrongChoices = new ArrayList<>();
+        for (Map<String, Object> choice : choices) {
+            if (Boolean.TRUE.equals(choice.get("isAnswer"))) {
+                correctChoice = choice;
+            } else {
+                wrongChoices.add(choice);
+            }
+        }
+        if (correctChoice == null) return; // malformed data — skip silently
+
+        Collections.shuffle(wrongChoices); // randomise wrong-choice order
+        wrongChoices.add(targetPosition, correctChoice); // insert answer at target slot
+
+        String json = serializeChoicesJson(wrongChoices);
+        if (json != null) dto.setQuestionChoices(json);
+    }
+
+    /**
+     * Constructs True/False choices ordered so the correct answer sits at
+     * {@code targetPosition} (0 = "A", 1 = "B"). The answer identity comes from
+     * {@code dto.questionAnswer} (case-insensitive "true" check). Stores the result
+     * in {@code dto.questionChoices} so the paper generator and history preview both
+     * render the choices in the correct shuffled order.
+     *
+     * @param dto            the TRUE_FALSE question DTO
+     * @param targetPosition 0 = correct answer at "A", 1 = correct answer at "B"
+     */
+    private void applyTrueFalsePosition(PaperGenQuestionDto dto, int targetPosition) {
+        boolean trueIsAnswer = "true".equalsIgnoreCase(dto.getQuestionAnswer());
+
+        Map<String, Object> answerChoice = new LinkedHashMap<>();
+        answerChoice.put("value", trueIsAnswer ? "True" : "False");
+        answerChoice.put("isAnswer", true);
+
+        Map<String, Object> otherChoice = new LinkedHashMap<>();
+        otherChoice.put("value", trueIsAnswer ? "False" : "True");
+        otherChoice.put("isAnswer", false);
+
+        List<Map<String, Object>> choices = new ArrayList<>();
+        if (targetPosition == 0) {
+            choices.add(answerChoice);
+            choices.add(otherChoice);
+        } else {
+            choices.add(otherChoice);
+            choices.add(answerChoice);
+        }
+
+        String json = serializeChoicesJson(choices);
+        if (json != null) dto.setQuestionChoices(json);
+    }
+
+    /**
+     * Post-processes the ordered slot list to ensure no run of more than
+     * {@link #MAX_CONSECUTIVE_SAME_ANSWER} consecutive questions shares the same answer
+     * label.
+     *
+     * <p>When a violation is detected at position {@code i}, the method searches forward
+     * for the nearest slot with the <em>same choice count</em> and a <em>different</em>
+     * answer label, then swaps their {@code targetPosition} values and re-shuffles both.
+     * Restricting swaps to equal-choice-count pairs preserves the per-group distribution
+     * balance established by {@link #assignBalancedPositions}.</p>
+     *
+     * <p>If no valid swap partner exists (e.g., all remaining questions of that choice
+     * count share the same answer), the violation is left as-is — this is unavoidable
+     * when the question pool is too small to fully satisfy the constraint.</p>
+     *
+     * <p>The scan restarts after each successful swap (worst-case O(N²)) but this is
+     * acceptable for typical exam sizes. A pass limit of {@code slots.size()} prevents
+     * any degenerate looping.</p>
+     */
+    private void enforceMaxConsecutiveStreak(List<QuestionSlot> slots) {
+        if (slots.size() <= MAX_CONSECUTIVE_SAME_ANSWER) return;
+
+        boolean changed = true;
+        int passLimit = slots.size(); // safety cap; convergence is guaranteed in practice
+        while (changed && passLimit-- > 0) {
+            changed = false;
+            int streak = 1;
+            for (int i = 1; i < slots.size(); i++) {
+                boolean sameLabel = slots.get(i).answerLabel().equals(slots.get(i - 1).answerLabel());
+                streak = sameLabel ? streak + 1 : 1;
+
+                if (streak > MAX_CONSECUTIVE_SAME_ANSWER) {
+                    QuestionSlot violator = slots.get(i);
+                    // Find the nearest later slot with the same choice count but a different label
+                    for (int j = i + 1; j < slots.size(); j++) {
+                        QuestionSlot candidate = slots.get(j);
+                        if (candidate.choiceCount == violator.choiceCount
+                                && !candidate.answerLabel().equals(violator.answerLabel())) {
+                            // Swap target positions and re-apply the choice shuffle for both
+                            int tmp = violator.targetPosition;
+                            violator.targetPosition = candidate.targetPosition;
+                            candidate.targetPosition = tmp;
+                            applyTargetPosition(violator);
+                            applyTargetPosition(candidate);
+                            changed = true;
+                            break;
+                        }
+                    }
+                    break; // restart the streak scan (changed=true) or accept defeat (changed=false)
+                }
+            }
+        }
+    }
+
+    /**
+     * Parses a JSON choices string into a list of choice maps ({@code value}, {@code isAnswer}).
+     * Returns {@code null} if the string is null, blank, or cannot be parsed.
+     */
+    private List<Map<String, Object>> parseChoicesJson(String json) {
+        if (json == null || json.isBlank()) return null;
+        try {
+            return objectMapper.readValue(json, new TypeReference<List<Map<String, Object>>>() {});
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    /**
+     * Serialises a list of choice maps back to a compact JSON string.
+     * Returns {@code null} if serialisation fails.
+     */
+    private String serializeChoicesJson(List<Map<String, Object>> choices) {
+        try {
+            return objectMapper.writeValueAsString(choices);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     public byte[] regenerateFromHistory(String rawText) {
