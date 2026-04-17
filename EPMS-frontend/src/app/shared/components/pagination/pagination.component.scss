@@ -15,5 +15,35 @@
     border: none;
     padding: 0;
     width: 100%;
+    flex-wrap: nowrap;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 640px) {
+  .pagination-wrapper {
+    ::ng-deep .p-paginator {
+      // Hide rows-per-page dropdown — it wraps to a second line on narrow screens
+      .p-select,
+      .p-dropdown,
+      .p-paginator-rpp-options {
+        display: none !important;
+      }
+
+      // Hide first/last page buttons to save horizontal space
+      .p-paginator-first,
+      .p-paginator-last {
+        display: none !important;
+      }
+
+      // Tighten up button sizes
+      .p-paginator-prev,
+      .p-paginator-next,
+      .p-paginator-page {
+        min-width: 2rem;
+        width: 2rem;
+        height: 2rem;
+      }
+    }
   }
 }

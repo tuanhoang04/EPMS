@@ -28,9 +28,10 @@ public class QuestionController {
             @RequestParam(required = false) UUID topicId,
             @RequestParam(required = false) Difficulty difficulty,
             @RequestParam(required = false) QuestionType questionType,
+            @RequestParam(required = false) String search,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        return questionService.getAllQuestions(subjectId, topicId, difficulty, questionType, PageRequest.of(page, size));
+        return questionService.getAllQuestions(subjectId, topicId, difficulty, questionType, search, PageRequest.of(page, size));
     }
 
     @GetMapping("/{id}")

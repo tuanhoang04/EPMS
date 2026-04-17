@@ -35,7 +35,7 @@ public class QuestionService {
         this.topicRepository = topicRepository;
     }
 
-    public Page<QuestionResponse> getAllQuestions(UUID subjectId, UUID topicId, Difficulty difficulty, xyz.tuanhoang04.EPMS.constant.QuestionType questionType, Pageable pageable) {
+    public Page<QuestionResponse> getAllQuestions(UUID subjectId, UUID topicId, Difficulty difficulty, xyz.tuanhoang04.EPMS.constant.QuestionType questionType, String search, Pageable pageable) {
         Specification<Question> spec = Specification.where(null);
 
         if (subjectId != null) {
@@ -52,6 +52,11 @@ public class QuestionService {
 
         if (questionType != null) {
             spec = spec.and((root, query, cb) -> cb.equal(root.get("questionType"), questionType));
+        }
+
+        if (search != null && !search.isBlank()) {
+            String pattern = "%" + search.toLowerCase() + "%";
+            spec = spec.and((root, query, cb) -> cb.like(cb.lower(root.get("questionText")), pattern));
         }
 
         return questionRepository.findAll(spec, pageable)

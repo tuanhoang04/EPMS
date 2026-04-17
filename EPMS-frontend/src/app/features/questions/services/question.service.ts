@@ -40,12 +40,13 @@ export class QuestionService {
 
   constructor(private http: HttpClient) {}
 
-  getAll(subjectId?: string, topicId?: string, difficulty?: string, questionType?: string, page: number = 0, size: number = 10): Observable<QuestionPage> {
+  getAll(subjectId?: string, topicId?: string, difficulty?: string, questionType?: string, page: number = 0, size: number = 10, search?: string): Observable<QuestionPage> {
     let params = new HttpParams();
     if (subjectId) params = params.set('subjectId', subjectId);
     if (topicId) params = params.set('topicId', topicId);
     if (difficulty) params = params.set('difficulty', difficulty);
     if (questionType) params = params.set('questionType', questionType);
+    if (search) params = params.set('search', search);
     params = params.set('page', page.toString());
     params = params.set('size', size.toString());
 

@@ -19,8 +19,19 @@
 <div class="questions-wrapper">
   <div class="questions-container main-layout-container">
 
-    <!-- Filters + view toggle -->
+    <!-- Desktop: full filters toolbar -->
     <div class="filters-toolbar">
+      <div class="filter-item search-item">
+        <label>Search</label>
+        <input
+          type="text"
+          class="search-input"
+          placeholder="Search questions..."
+          [value]="searchQuery()"
+          (input)="onSearchInput($any($event.target).value)"
+        />
+      </div>
+
       <div class="filter-item">
         <label>Subject</label>
         <p-autocomplete
@@ -100,6 +111,110 @@
         ></button>
       </div>
     </div>
+
+    <!-- Mobile: compact search + filter button row -->
+    <div class="mobile-toolbar">
+      <input
+        type="text"
+        class="search-input mobile-search"
+        placeholder="Search questions..."
+        [value]="searchQuery()"
+        (input)="onSearchInput($any($event.target).value)"
+      />
+      <button class="mobile-icon-btn" (click)="showFilterSheet.set(true)" title="Filters">
+        <i class="pi pi-filter"></i>
+        @if (activeFilterCount() > 0) {
+          <span class="filter-badge">{{ activeFilterCount() }}</span>
+        }
+      </button>
+      <button class="mobile-icon-btn" (click)="toggleView()" title="Toggle view">
+        <i [class]="viewMode() === 'grid' ? 'pi pi-list' : 'pi pi-th-large'"></i>
+      </button>
+    </div>
+
+    <!-- Mobile: filter bottom sheet -->
+    @if (showFilterSheet()) {
+      <div class="filter-sheet-backdrop" (click)="showFilterSheet.set(false)"></div>
+      <div class="filter-sheet">
+        <div class="filter-sheet-handle"></div>
+        <div class="filter-sheet-header">
+          <span class="filter-sheet-title">Filters</span>
+          <button class="filter-sheet-close" (click)="showFilterSheet.set(false)">
+            <i class="pi pi-times"></i>
+          </button>
+        </div>
+        <div class="filter-sheet-body">
+          <div class="filter-item">
+            <label>Subject</label>
+            <p-autocomplete
+              [suggestions]="filteredSubjects()"
+              (completeMethod)="searchSubjects($event)"
+              [ngModel]="selectedSubject()"
+              (onSelect)="onSubjectChange($event)"
+              (onClear)="onSubjectChange(null)"
+              optionLabel="name"
+              [dropdown]="true"
+              [forceSelection]="true"
+              [completeOnFocus]="true"
+              placeholder="Select a Subject"
+              appendTo="body"
+            ></p-autocomplete>
+          </div>
+          <div class="filter-item">
+            <label>Topic</label>
+            <p-autocomplete
+              [suggestions]="filteredTopics()"
+              (completeMethod)="searchTopics($event)"
+              [ngModel]="selectedTopic()"
+              (onSelect)="onTopicChange($event)"
+              (onClear)="onTopicChange(null)"
+              optionLabel="name"
+              [dropdown]="true"
+              [forceSelection]="true"
+              [completeOnFocus]="true"
+              placeholder="Select a Topic"
+              appendTo="body"
+            ></p-autocomplete>
+          </div>
+          <div class="filter-item">
+            <label>Difficulty</label>
+            <p-autocomplete
+              [suggestions]="filteredDifficulties()"
+              (completeMethod)="searchDifficulties($event)"
+              [ngModel]="selectedDifficulty()"
+              (onSelect)="onDifficultyChange($event)"
+              (onClear)="onDifficultyChange(null)"
+              optionLabel="label"
+              [dropdown]="true"
+              [forceSelection]="true"
+              [completeOnFocus]="true"
+              placeholder="Select Difficulty"
+              appendTo="body"
+            ></p-autocomplete>
+          </div>
+          <div class="filter-item">
+            <label>Question Type</label>
+            <p-autocomplete
+              [suggestions]="filteredQuestionTypes()"
+              (completeMethod)="searchQuestionTypes($event)"
+              [ngModel]="selectedQuestionType()"
+              (onSelect)="onQuestionTypeChange($event)"
+              (onClear)="onQuestionTypeChange(null)"
+              optionLabel="label"
+              [dropdown]="true"
+              [forceSelection]="true"
+              [completeOnFocus]="true"
+              placeholder="Select Type"
+              appendTo="body"
+            ></p-autocomplete>
+          </div>
+        </div>
+        <div class="filter-sheet-footer">
+          <button class="sheet-btn-clear" (click)="clearAllFilters()">Clear all</button>
+          <button class="sheet-btn-apply" (click)="showFilterSheet.set(false)">Apply</button>
+        </div>
+      </div>
+    }
 
     <!-- Empty state -->
     @if (questions().length === 0) {

@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, effect } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal, effect, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
@@ -34,7 +34,7 @@ import { XmlRenderPipe } from '../../../../shared/pipes/xml-render.pipe';
   templateUrl: './questions.html',
   styleUrl: './questions.scss',
 })
-export class QuestionsPage implements OnInit {
+export class QuestionsPage implements OnInit, OnDestroy {
   questions = signal<QuestionResponse[]>([]);
   page = signal<QuestionPage | null>(null);
   pageIndex = signal(0);
@@ -47,7 +47,20 @@ export class QuestionsPage implements OnInit {
   allTopics = signal<TopicResponse[]>([]);
   showAddModal = signal(false);
   showDetailModal = signal(false);
+  showFilterSheet = signal(false);
   selectedDetailQuestion = signal<QuestionResponse | null>(null);
+
+  activeFilterCount = computed(() => {
+    let count = 0;
+    if (this.selectedSubject()) count++;
+    if (this.selectedTopic()) count++;
+    if (this.selectedDifficulty()) count++;
+    if (this.selectedQuestionType()) count++;
+    return count;
+  });
+
+  searchQuery = signal('');
+  private searchDebounceTimer: any = null;
 
   selectedSubject = signal<any | null>(null);
   selectedTopic = signal<any | null>(null);
@@ -86,6 +99,7 @@ export class QuestionsPage implements OnInit {
       this.selectedTopic();
       this.selectedDifficulty();
       this.selectedQuestionType();
+      this.searchQuery();
       this.pageIndex();
       this.pageSize();
 
@@ -159,6 +173,7 @@ export class QuestionsPage implements OnInit {
     const topicId = this.selectedTopic()?.id;
     const difficultyValue = this.selectedDifficulty()?.value;
     const questionTypeValue = this.selectedQuestionType()?.value;
+    const search = this.searchQuery().trim() || undefined;
 
     this.questionService.getAll(
       subjectId || undefined,
@@ -166,13 +181,36 @@ export class QuestionsPage implements OnInit {
       difficultyValue || undefined,
       questionTypeValue || undefined,
       this.pageIndex(),
-      this.pageSize()
+      this.pageSize(),
+      search
     ).subscribe({
       next: (data) => {
         this.page.set(data);
         this.questions.set(data.content);
       }
     });
+  }
+
+  onSearchInput(value: string) {
+    if (this.searchDebounceTimer) clearTimeout(this.searchDebounceTimer);
+    this.searchDebounceTimer = setTimeout(() => {
+      this.pageIndex.set(0);
+      this.searchQuery.set(value);
+    }, 350);
+  }
+
+  ngOnDestroy() {
+    if (this.searchDebounceTimer) clearTimeout(this.searchDebounceTimer);
+  }
+
+  clearAllFilters() {
+    this.selectedSubject.set(null);
+    this.selectedTopic.set(null);
+    this.selectedDifficulty.set(null);
+    this.selectedQuestionType.set(null);
+    this.topics.set(this.allTopics());
+    this.filteredTopics.set(this.allTopics());
+    this.pageIndex.set(0);
   }
 
   onPageChange(event: { page: number; rows: number }) {

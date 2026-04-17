@@ -5,9 +5,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
+
+import jakarta.persistence.EntityManager;
 import xyz.tuanhoang04.EPMS.constant.Difficulty;
 import xyz.tuanhoang04.EPMS.constant.QuestionType;
 import xyz.tuanhoang04.EPMS.dto.requests.*;
@@ -41,18 +46,26 @@ public class ExamPaperService {
     private final ExamHistoryRawTextRepository examHistoryRawTextRepository;
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
+    private final EntityManager entityManager;
+    // Runs history saves in their own transaction so a failure cannot roll back the generation
+    private final TransactionTemplate requiresNewTx;
 
     public ExamPaperService(
             TemplateRepository templateRepository,
             QuestionRepository questionRepository,
             ExamHistoryRawTextRepository examHistoryRawTextRepository,
             RestTemplate restTemplate,
-            ObjectMapper objectMapper) {
+            ObjectMapper objectMapper,
+            EntityManager entityManager,
+            PlatformTransactionManager transactionManager) {
         this.templateRepository = templateRepository;
         this.questionRepository = questionRepository;
         this.examHistoryRawTextRepository = examHistoryRawTextRepository;
         this.restTemplate = restTemplate;
         this.objectMapper = objectMapper;
+        this.entityManager = entityManager;
+        this.requiresNewTx = new TransactionTemplate(transactionManager);
+        this.requiresNewTx.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
     }
 
     @Transactional
@@ -113,16 +126,25 @@ public class ExamPaperService {
         return docxBytes;
     }
 
+    /**
+     * Persists a history record in its own {@code REQUIRES_NEW} transaction so that any
+     * failure (e.g. column overflow) is fully isolated from the paper-generation transaction.
+     * The {@code template} proxy belongs to the outer session, so we re-attach it via
+     * {@link EntityManager#getReference} inside the inner transaction.
+     */
     private void saveHistory(Template template, String title, PaperGenRequest paperGenRequest) {
         try {
             String rawText = objectMapper.writeValueAsString(paperGenRequest);
-            ExamHistoryRawText history = new ExamHistoryRawText();
-            history.setTitle(title);
-            history.setRawText(rawText);
-            history.setTemplate(template);
-            examHistoryRawTextRepository.save(history);
+            UUID templateId = template.getId();
+            requiresNewTx.executeWithoutResult(status -> {
+                ExamHistoryRawText history = new ExamHistoryRawText();
+                history.setTitle(title);
+                history.setRawText(rawText);
+                history.setTemplate(entityManager.getReference(Template.class, templateId));
+                examHistoryRawTextRepository.save(history);
+            });
         } catch (Exception e) {
-            // Do not fail the generation if history saving fails
+            System.err.println("History save failed (generation still succeeded): " + e.getMessage());
         }
     }
 
