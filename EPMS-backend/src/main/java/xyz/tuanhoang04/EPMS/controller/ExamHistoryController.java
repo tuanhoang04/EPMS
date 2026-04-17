@@ -33,15 +33,14 @@ public class ExamHistoryController {
 
     @PostMapping("/{id}/download")
     public ResponseEntity<byte[]> download(@PathVariable UUID id, Authentication authentication) {
-        byte[] docxBytes = examHistoryService.downloadHistory(id, authentication.getName());
+        byte[] zipBytes = examHistoryService.downloadHistory(id, authentication.getName());
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.parseMediaType(
-                "application/vnd.openxmlformats-officedocument.wordprocessingml.document"));
-        headers.setContentDispositionFormData("attachment", "exam.docx");
-        headers.setContentLength(docxBytes.length);
+        headers.setContentType(MediaType.parseMediaType("application/zip"));
+        headers.setContentDispositionFormData("attachment", "exam-package.zip");
+        headers.setContentLength(zipBytes.length);
 
-        return new ResponseEntity<>(docxBytes, headers, HttpStatus.OK);
+        return new ResponseEntity<>(zipBytes, headers, HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}")

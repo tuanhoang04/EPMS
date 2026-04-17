@@ -27,14 +27,13 @@ public class ExamPaperController {
      */
     @PostMapping("/generate")
     public ResponseEntity<byte[]> generate(@RequestBody ExamPaperRequest request) {
-        byte[] docxBytes = examPaperService.generateExamPaper(request);
+        byte[] zipBytes = examPaperService.generateExamPaper(request);
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.parseMediaType(
-                "application/vnd.openxmlformats-officedocument.wordprocessingml.document"));
-        headers.setContentDispositionFormData("attachment", "exam.docx");
-        headers.setContentLength(docxBytes.length);
+        headers.setContentType(MediaType.parseMediaType("application/zip"));
+        headers.setContentDispositionFormData("attachment", "exam-package.zip");
+        headers.setContentLength(zipBytes.length);
 
-        return new ResponseEntity<>(docxBytes, headers, HttpStatus.OK);
+        return new ResponseEntity<>(zipBytes, headers, HttpStatus.OK);
     }
 }

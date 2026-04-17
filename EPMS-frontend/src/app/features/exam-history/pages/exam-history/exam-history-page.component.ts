@@ -100,7 +100,7 @@ export class ExamHistoryPage implements OnInit, OnDestroy {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `${history.title}.docx`;
+        a.download = `${history.title} ${new Date(history.createdAt).toLocaleString('sv').replace(/[: ]/g, (c) => c === ' ' ? '_' : '-')}.zip`;
         a.click();
         URL.revokeObjectURL(url);
       },
@@ -119,7 +119,7 @@ export class ExamHistoryPage implements OnInit, OnDestroy {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `${history.title}.docx`;
+        a.download = `${history.title} ${new Date(history.createdAt).toLocaleString('sv').replace(/[: ]/g, (c) => c === ' ' ? '_' : '-')}.zip`;
         a.click();
         URL.revokeObjectURL(url);
       },

@@ -293,7 +293,7 @@ export class TemplateDetailModalComponent implements OnChanges {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `${title}.docx`;
+        a.download = `${title} ${new Date().toLocaleString('sv').replace(/[: ]/g, (c) => c === ' ' ? '_' : '-')}.zip`;
         a.click();
         URL.revokeObjectURL(url);
       },
