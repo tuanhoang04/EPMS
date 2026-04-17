@@ -1,5 +1,7 @@
 package xyz.tuanhoang04.EPMS.controller;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -13,7 +15,6 @@ import java.nio.file.Paths;
 import xyz.tuanhoang04.EPMS.dto.responses.ExamHistoryResponse;
 import xyz.tuanhoang04.EPMS.service.ExamHistoryService;
 
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -27,8 +28,11 @@ public class ExamHistoryController {
     }
 
     @GetMapping
-    public List<ExamHistoryResponse> getMyHistory(Authentication authentication) {
-        return examHistoryService.getHistoryForUser(authentication.getName());
+    public Page<ExamHistoryResponse> getMyHistory(
+            Authentication authentication,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return examHistoryService.getHistoryForUser(authentication.getName(), PageRequest.of(page, size));
     }
 
     @PostMapping("/{id}/download")

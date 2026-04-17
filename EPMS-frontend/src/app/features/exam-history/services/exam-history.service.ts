@@ -34,14 +34,22 @@ export interface ExamHistoryResponse {
   createdAt: string;
 }
 
+export interface ExamHistoryPageData {
+  content: ExamHistoryResponse[];
+  totalElements: number;
+  totalPages: number;
+  size: number;
+  number: number;
+}
+
 @Injectable({ providedIn: 'root' })
 export class ExamHistoryService {
   private readonly apiUrl = 'http://localhost:8080/api/exam-history';
 
   constructor(private http: HttpClient) {}
 
-  getMyHistory(): Observable<ExamHistoryResponse[]> {
-    return this.http.get<ExamHistoryResponse[]>(this.apiUrl);
+  getMyHistory(page = 0, size = 10): Observable<ExamHistoryPageData> {
+    return this.http.get<ExamHistoryPageData>(this.apiUrl, { params: { page, size } });
   }
 
   download(id: string): Observable<Blob> {

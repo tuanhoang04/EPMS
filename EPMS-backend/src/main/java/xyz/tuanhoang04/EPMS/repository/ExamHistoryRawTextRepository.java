@@ -1,5 +1,7 @@
 package xyz.tuanhoang04.EPMS.repository;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import xyz.tuanhoang04.EPMS.entity.ExamHistoryRawText;
 
@@ -11,4 +13,5 @@ public interface ExamHistoryRawTextRepository extends JpaRepository<ExamHistoryR
     long countByTemplateSubjectUserId(UUID userId);
     List<ExamHistoryRawText> findByTitleContainingIgnoreCase(String title);
     List<ExamHistoryRawText> findByTemplateSubjectUserIdOrderByCreatedAtDesc(UUID userId);
+    Page<ExamHistoryRawText> findByTemplateSubjectUserIdOrderByCreatedAtDesc(UUID userId, Pageable pageable);
 }

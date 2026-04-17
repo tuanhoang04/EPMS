@@ -55,6 +55,16 @@
           </div>
         }
       </div>
+
+      @if (page() && page()!.totalElements > 0) {
+        <app-pagination
+          [rows]="pageSize()"
+          [totalRecords]="page()!.totalElements"
+          [rowsPerPageOptions]="pageSizeOptions"
+          [first]="pageIndex() * pageSize()"
+          (onPageChange)="onPageChange($event)"
+        ></app-pagination>
+      }
     }
 
   </div>

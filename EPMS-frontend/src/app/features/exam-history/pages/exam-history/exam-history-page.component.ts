@@ -2,10 +2,12 @@ import { Component, OnInit, OnDestroy, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HeaderComponent } from '../../../../shared/components/header/Header.component';
 import { BottomNavComponent } from '../../../../shared/components/bottom-nav/bottom-nav.component';
+import { PaginationComponent } from '../../../../shared/components/pagination/pagination.component';
 import { XmlRenderPipe } from '../../../../shared/pipes/xml-render.pipe';
 import {
   ExamHistoryService,
   ExamHistoryResponse,
+  ExamHistoryPageData,
   PaperGenRequest,
   PaperGenPartDto,
   PaperGenQuestionDto
@@ -41,12 +43,16 @@ const CHOICE_LABELS = 'ABCDEFGHIJ'.split('');
 @Component({
   selector: 'app-exam-history-page',
   standalone: true,
-  imports: [CommonModule, HeaderComponent, BottomNavComponent, XmlRenderPipe],
+  imports: [CommonModule, HeaderComponent, BottomNavComponent, PaginationComponent, XmlRenderPipe],
   templateUrl: './exam-history-page.component.html',
   styleUrl: './exam-history-page.component.scss',
 })
 export class ExamHistoryPage implements OnInit, OnDestroy {
   historyList = signal<ExamHistoryResponse[]>([]);
+  page = signal<ExamHistoryPageData | null>(null);
+  pageIndex = signal(0);
+  pageSize = signal(10);
+  pageSizeOptions = [10, 20, 50];
   loading = signal(true);
   selectedHistory = signal<ExamHistoryResponse | null>(null);
   selectedPaper = signal<PaperView | null>(null);
@@ -65,13 +71,20 @@ export class ExamHistoryPage implements OnInit, OnDestroy {
 
   load() {
     this.loading.set(true);
-    this.examHistoryService.getMyHistory().subscribe({
+    this.examHistoryService.getMyHistory(this.pageIndex(), this.pageSize()).subscribe({
       next: (data) => {
-        this.historyList.set(data);
+        this.page.set(data);
+        this.historyList.set(data.content);
         this.loading.set(false);
       },
       error: () => this.loading.set(false),
     });
+  }
+
+  onPageChange(event: { page: number; rows: number }) {
+    this.pageIndex.set(event.page);
+    this.pageSize.set(event.rows);
+    this.load();
   }
 
   openPreview(history: ExamHistoryResponse) {
@@ -138,7 +151,12 @@ export class ExamHistoryPage implements OnInit, OnDestroy {
         if (this.selectedHistory()?.id === history.id) {
           this.closePreview();
         }
-        this.historyList.update(list => list.filter(h => h.id !== history.id));
+        // If the current page becomes empty after deletion, go back one page
+        const remaining = this.historyList().filter(h => h.id !== history.id);
+        if (remaining.length === 0 && this.pageIndex() > 0) {
+          this.pageIndex.set(this.pageIndex() - 1);
+        }
+        this.load();
       },
       error: () => this.deleting.set(null),
     });
