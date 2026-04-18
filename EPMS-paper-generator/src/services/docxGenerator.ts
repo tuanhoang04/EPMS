@@ -20,8 +20,42 @@ const COL_WIDTH = 25; // percent
 const PRINTABLE_WIDTH_TWIPS = 9746; // 11906 - 1080*2
 const PRINTABLE_HEIGHT_TWIPS = 14678; // 16838 - 1080*2
 const COL_WIDTH_TWIPS = Math.floor(PRINTABLE_WIDTH_TWIPS * (COL_WIDTH / 100)); // ~2436
-const CHARS_PER_LINE = 97; // scaled with printable width
 const CHOICE_LABELS = 'ABCDEFGHIJ'.split('');
+
+// ── Times New Roman glyph widths (Adobe Type 1, 1000 units/em) ───────────────
+// Handles wide chars (M=889, W=944), narrow chars (I=333, i=278, l=278),
+// digits, punctuation and the em-space used as label padding.
+const TNR_WIDTHS: Readonly<Record<string, number>> = {
+  ' ': 250, '!': 333, '"': 408, '#': 500, '$': 500, '%': 833, '&': 778, "'": 333,
+  '(': 333, ')': 333, '*': 500, '+': 564, ',': 250, '-': 333, '.': 250, '/': 278,
+  '0': 500, '1': 500, '2': 500, '3': 500, '4': 500,
+  '5': 500, '6': 500, '7': 500, '8': 500, '9': 500,
+  ':': 278, ';': 278, '<': 564, '=': 564, '>': 564, '?': 444, '@': 921,
+  'A': 722, 'B': 667, 'C': 667, 'D': 722, 'E': 611, 'F': 556, 'G': 722,
+  'H': 722, 'I': 333, 'J': 389, 'K': 722, 'L': 611, 'M': 889, 'N': 722,
+  'O': 722, 'P': 556, 'Q': 722, 'R': 667, 'S': 556, 'T': 611, 'U': 722,
+  'V': 722, 'W': 944, 'X': 722, 'Y': 722, 'Z': 611,
+  '[': 333, '\\': 278, ']': 333, '^': 469, '_': 500, '`': 333,
+  'a': 444, 'b': 500, 'c': 444, 'd': 500, 'e': 444, 'f': 333, 'g': 500,
+  'h': 500, 'i': 278, 'j': 278, 'k': 500, 'l': 278, 'm': 778, 'n': 500,
+  'o': 500, 'p': 500, 'q': 500, 'r': 333, 's': 389, 't': 278, 'u': 500,
+  'v': 500, 'w': 722, 'x': 500, 'y': 500, 'z': 444,
+  '{': 480, '|': 200, '}': 480, '~': 541,
+  '\u2003': 1000, // em space
+};
+
+/**
+ * Estimates the rendered width of plain text in twips for Times New Roman.
+ * sizeHalfPts is the docx half-point size (e.g. 22 = 11 pt).
+ */
+function estimateWidthTwips(text: string, sizeHalfPts: number): number {
+  const emTwips = (sizeHalfPts / 2) * 20; // 1 pt = 20 twips
+  let units = 0;
+  for (const ch of text) {
+    units += TNR_WIDTHS[ch] ?? 500;
+  }
+  return (units / 1000) * emTwips;
+}
 
 // Image size constraints (docx transformation units: 1 unit = 1/100 inch = 1440/100 twips)
 const TWIPS_PER_IMG_UNIT = 1440 / 100;
@@ -57,10 +91,6 @@ function xmlRuns(text: string, size: number): TextRun[] {
 
 // ── Choice helpers ────────────────────────────────────────────────────────────
 
-const estimateChoiceLength = (label: string, text: string): number => {
-  const plain = getPlainText(text);
-  return label.length + 2 + plain.length;
-};
 
 function choiceTabLine(choices: QuestionChoice[], labels: string[]): Paragraph {
   const runs: TextRun[] = [];
@@ -240,10 +270,12 @@ function createQuestionBlock(index: number, question: QuestionData): Paragraph[]
 
     if (choices.length > 0) {
       const labels = choices.map((_, i) => CHOICE_LABELS[i] ?? String.fromCharCode(65 + i));
-      const maxLen = Math.max(...choices.map((c, i) => estimateChoiceLength(labels[i], c.value)));
-      const charsPerColumn = CHARS_PER_LINE * (COL_WIDTH / 100);
+      const maxChoiceWidthTwips = Math.max(...choices.map((c, i) => {
+        const label = `${labels[i] ?? String.fromCharCode(65 + i)}. `;
+        return estimateWidthTwips(label, CHOICE_SIZE) + estimateWidthTwips(getPlainText(c.value), CHOICE_SIZE);
+      }));
 
-      if (choices.length <= 4 && maxLen <= charsPerColumn) {
+      if (choices.length <= 4 && maxChoiceWidthTwips <= COL_WIDTH_TWIPS * 0.92) {
         items.push(choiceTabLine(choices, labels));
       } else {
         choices.forEach((choice, i) => {
