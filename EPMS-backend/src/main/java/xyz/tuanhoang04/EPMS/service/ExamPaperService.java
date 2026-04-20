@@ -175,10 +175,18 @@ public class ExamPaperService {
                         .collect(Collectors.toList());
                 Collections.shuffle(available);
 
-                available.stream().limit(count).forEach(q -> {
+                List<Question> taken = available.stream().limit(count).collect(Collectors.toList());
+                taken.forEach(q -> {
                     selected.add(q);
                     selectedIds.add(q.getId());
                 });
+
+                int shortfall = count - taken.size();
+                if (shortfall > 0) {
+                    List<Question> fallback = fillByAdjacentDifficulty(
+                            topicIds, dist.getDifficulty(), part.getQuestionType(), shortfall, selectedIds);
+                    selected.addAll(fallback);
+                }
             }
         }
 
@@ -229,6 +237,47 @@ public class ExamPaperService {
             return questionRepository.findByTopicIdInAndQuestionType(topicIds, questionType);
         }
         return questionRepository.findByTopicIdIn(topicIds);
+    }
+
+    /**
+     * Fills a shortfall of questions for a given difficulty by pulling from the nearest
+     * adjacent difficulty levels within the same topic pool and question type.
+     * One level lower is tried first (e.g. EASY → BEGINNER), then one level higher
+     * (e.g. EASY → INTERMEDIATE). {@code excludeIds} is updated in place as candidates
+     * are claimed so the caller's dedup set stays consistent.
+     */
+    private List<Question> fillByAdjacentDifficulty(
+            List<UUID> topicIds, Difficulty target, QuestionType questionType,
+            int shortfall, Set<UUID> excludeIds) {
+        Difficulty[] ordered = { Difficulty.BEGINNER, Difficulty.EASY, Difficulty.INTERMEDIATE, Difficulty.ADVANCED };
+        int idx = -1;
+        for (int i = 0; i < ordered.length; i++) {
+            if (ordered[i] == target) { idx = i; break; }
+        }
+        if (idx < 0) return Collections.emptyList();
+
+        List<Question> result = new ArrayList<>();
+        int[] offsets = { -1, +1 }; // lower first, then higher
+
+        for (int offset : offsets) {
+            if (result.size() >= shortfall) break;
+            int adjIdx = idx + offset;
+            if (adjIdx < 0 || adjIdx >= ordered.length) continue;
+
+            List<Question> candidates = fetchByDifficulty(topicIds, ordered[adjIdx], questionType);
+            candidates = candidates.stream()
+                    .filter(q -> !excludeIds.contains(q.getId()))
+                    .collect(Collectors.toList());
+            Collections.shuffle(candidates);
+
+            int needed = shortfall - result.size();
+            for (Question q : candidates.stream().limit(needed).collect(Collectors.toList())) {
+                result.add(q);
+                excludeIds.add(q.getId());
+            }
+        }
+
+        return result;
     }
 
     // ── Answer-key distribution balancing ────────────────────────────────────────
