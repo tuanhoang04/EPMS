@@ -49,6 +49,7 @@ public class ExamPaperService {
     private final EntityManager entityManager;
     // Runs history saves in their own transaction so a failure cannot roll back the generation
     private final TransactionTemplate requiresNewTx;
+    private final Random random = new Random();
 
     public ExamPaperService(
             TemplateRepository templateRepository,
@@ -534,20 +535,25 @@ public class ExamPaperService {
 
                 if (streak >= MAX_CONSECUTIVE_SAME_ANSWER) {
                     QuestionSlot violator = cur;
-                    // Find the nearest later slot with the same choice count but a different label
+                    // Collect all later slots eligible for a swap (same choice count, different label)
+                    List<Integer> candidateIndices = new ArrayList<>();
                     for (int j = i + 1; j < slots.size(); j++) {
                         QuestionSlot candidate = slots.get(j);
                         if (candidate.choiceCount == violator.choiceCount
                                 && !candidate.answerLabel().equals(violator.answerLabel())) {
-                            // Swap target positions and re-apply the choice shuffle for both
-                            int tmp = violator.targetPosition;
-                            violator.targetPosition = candidate.targetPosition;
-                            candidate.targetPosition = tmp;
-                            applyTargetPosition(violator);
-                            applyTargetPosition(candidate);
-                            changed = true;
-                            break;
+                            candidateIndices.add(j);
                         }
+                    }
+                    if (!candidateIndices.isEmpty()) {
+                        // Pick a random candidate so the break point is not predictably adjacent
+                        int j = candidateIndices.get(random.nextInt(candidateIndices.size()));
+                        QuestionSlot candidate = slots.get(j);
+                        int tmp = violator.targetPosition;
+                        violator.targetPosition = candidate.targetPosition;
+                        candidate.targetPosition = tmp;
+                        applyTargetPosition(violator);
+                        applyTargetPosition(candidate);
+                        changed = true;
                     }
                     break; // restart the streak scan (changed=true) or accept defeat (changed=false)
                 }
