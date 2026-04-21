@@ -305,6 +305,7 @@ export class TemplateDetailModalComponent implements OnChanges {
     return !!this.templateTitle.trim() &&
            !!this.selectedSubject &&
            this.parts().some(p => p.isValid) &&
+           !this.parts().some(p => this.difficultyTotal(p) > 100) &&
            !this.saving();
   }
 }

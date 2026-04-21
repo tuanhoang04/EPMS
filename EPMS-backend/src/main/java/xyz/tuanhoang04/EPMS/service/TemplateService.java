@@ -26,17 +26,20 @@ public class TemplateService {
     private final TemplatePartRepository templatePartRepository;
     private final TemplatePartDifficultyRepository templatePartDifficultyRepository;
     private final TopicRepository topicRepository;
+    private final ExamHistoryRawTextRepository examHistoryRawTextRepository;
 
     public TemplateService(TemplateRepository templateRepository,
                            SubjectRepository subjectRepository,
                            TemplatePartRepository templatePartRepository,
                            TemplatePartDifficultyRepository templatePartDifficultyRepository,
-                           TopicRepository topicRepository) {
+                           TopicRepository topicRepository,
+                           ExamHistoryRawTextRepository examHistoryRawTextRepository) {
         this.templateRepository = templateRepository;
         this.subjectRepository = subjectRepository;
         this.templatePartRepository = templatePartRepository;
         this.templatePartDifficultyRepository = templatePartDifficultyRepository;
         this.topicRepository = topicRepository;
+        this.examHistoryRawTextRepository = examHistoryRawTextRepository;
     }
 
     public Page<TemplateResponse> getAllTemplates(UUID subjectId, Pageable pageable) {
@@ -100,6 +103,9 @@ public class TemplateService {
 
     @Transactional
     public void deleteTemplate(UUID id) {
+        List<ExamHistoryRawText> histories = examHistoryRawTextRepository.findByTemplateId(id);
+        histories.forEach(h -> h.setTemplate(null));
+        examHistoryRawTextRepository.saveAll(histories);
         templateRepository.deleteById(id);
     }
 

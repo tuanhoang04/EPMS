@@ -26,7 +26,7 @@ public class TemplatePart extends BaseEntity {
     @JoinColumn(name="template_id")
     private Template template;
 
-    @OneToMany(mappedBy = "templatePart")
+    @OneToMany(mappedBy = "templatePart", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<TemplatePartDifficulty> templatePartDifficulties;
 
     @ManyToMany

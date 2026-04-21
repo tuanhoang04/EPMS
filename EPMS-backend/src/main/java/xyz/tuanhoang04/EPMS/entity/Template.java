@@ -19,7 +19,7 @@ public class Template extends BaseEntity {
     @JoinColumn(name="subject_id")
     private Subject subject;
 
-    @OneToMany(mappedBy = "template")
+    @OneToMany(mappedBy = "template", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<TemplatePart> templateParts;
 
     @OneToMany(mappedBy = "template")
