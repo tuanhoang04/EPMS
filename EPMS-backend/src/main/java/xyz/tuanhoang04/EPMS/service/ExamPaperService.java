@@ -521,11 +521,19 @@ public class ExamPaperService {
             changed = false;
             int streak = 1;
             for (int i = 1; i < slots.size(); i++) {
-                boolean sameLabel = slots.get(i).answerLabel().equals(slots.get(i - 1).answerLabel());
+                QuestionSlot cur = slots.get(i);
+                QuestionSlot prev = slots.get(i - 1);
+                // Skip 2-choice questions (True/False and 2-option MCQ) — a streak of >=4
+                // would trivially reveal the answer for such questions.
+                if (cur.choiceCount == 2 || prev.choiceCount == 2) {
+                    streak = 1;
+                    continue;
+                }
+                boolean sameLabel = cur.answerLabel().equals(prev.answerLabel());
                 streak = sameLabel ? streak + 1 : 1;
 
                 if (streak >= MAX_CONSECUTIVE_SAME_ANSWER) {
-                    QuestionSlot violator = slots.get(i);
+                    QuestionSlot violator = cur;
                     // Find the nearest later slot with the same choice count but a different label
                     for (int j = i + 1; j < slots.size(); j++) {
                         QuestionSlot candidate = slots.get(j);
