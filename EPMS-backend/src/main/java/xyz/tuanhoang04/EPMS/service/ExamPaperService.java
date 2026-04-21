@@ -513,7 +513,7 @@ public class ExamPaperService {
      * any degenerate looping.</p>
      */
     private void enforceMaxConsecutiveStreak(List<QuestionSlot> slots) {
-        if (slots.size() <= MAX_CONSECUTIVE_SAME_ANSWER) return;
+        if (slots.size() < MAX_CONSECUTIVE_SAME_ANSWER) return;
 
         boolean changed = true;
         int passLimit = slots.size(); // safety cap; convergence is guaranteed in practice
@@ -524,7 +524,7 @@ public class ExamPaperService {
                 boolean sameLabel = slots.get(i).answerLabel().equals(slots.get(i - 1).answerLabel());
                 streak = sameLabel ? streak + 1 : 1;
 
-                if (streak > MAX_CONSECUTIVE_SAME_ANSWER) {
+                if (streak >= MAX_CONSECUTIVE_SAME_ANSWER) {
                     QuestionSlot violator = slots.get(i);
                     // Find the nearest later slot with the same choice count but a different label
                     for (int j = i + 1; j < slots.size(); j++) {
