@@ -118,7 +118,7 @@ export class TemplateDetailModalComponent implements OnChanges {
       questionType: p.questionType,
       selectedTopics: p.topics.map(t => ({ id: t.id, name: t.name, subjectId: this.template!.subjectId }) as TopicResponse),
       filteredTopics: [],
-      difficulties: (p.difficulties ?? []).map(d => ({ difficulty: d.difficulty, difficultyValue: Number(d.difficultyValue) })),
+      difficulties: this.sortDifficulties((p.difficulties ?? []).map(d => ({ difficulty: d.difficulty, difficultyValue: Number(d.difficultyValue) }))),
       isValid: true
     }));
 
@@ -161,6 +161,14 @@ export class TemplateDetailModalComponent implements OnChanges {
   }
 
   // ── Difficulty helpers ──────────────────────────────────────────────────────
+
+  private readonly DIFFICULTY_ORDER = ALL_DIFFICULTIES.map(d => d.value);
+
+  private sortDifficulties(rows: DifficultyFormRow[]): DifficultyFormRow[] {
+    return [...rows].sort(
+      (a, b) => this.DIFFICULTY_ORDER.indexOf(a.difficulty) - this.DIFFICULTY_ORDER.indexOf(b.difficulty)
+    );
+  }
 
   availableDifficultiesFor(part: TemplatePartFormData) {
     const used = new Set(part.difficulties.map(d => d.difficulty));
@@ -254,7 +262,7 @@ export class TemplateDetailModalComponent implements OnChanges {
         numberOfQuestions: p.numberOfQuestions,
         questionType: p.questionType,
         topicIds: p.selectedTopics.map(t => t.id),
-        difficulties: p.difficulties.map(d => ({ difficulty: d.difficulty, difficultyValue: d.difficultyValue }))
+        difficulties: this.sortDifficulties(p.difficulties).map(d => ({ difficulty: d.difficulty, difficultyValue: d.difficultyValue }))
       }))
     };
 
