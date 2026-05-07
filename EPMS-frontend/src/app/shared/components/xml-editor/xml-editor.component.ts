@@ -125,8 +125,7 @@ export class XmlEditorComponent implements ControlValueAccessor, AfterViewInit {
         const el = child as HTMLElement;
         const tag = el.tagName.toLowerCase();
         if ((ALLOWED_TAGS as string[]).includes(tag)) {
-          // Skip elements whose text content is empty — browser leftovers
-          const inner = el.textContent ?? '';
+          const inner = this.serializeDomToXml(el);
           if (inner) out += `<${tag}>${inner}</${tag}>`;
         } else if (tag === 'br') {
           out += '\n';
