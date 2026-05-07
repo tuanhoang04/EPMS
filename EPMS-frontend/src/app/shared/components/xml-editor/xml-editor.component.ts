@@ -132,15 +132,16 @@ export class XmlEditorComponent implements ControlValueAccessor, AfterViewInit {
         } else if (tag === 'div' || tag === 'p') {
           // Browsers wrap new paragraphs in <div>/<p>
           if (out.length > 0 && !out.endsWith('\n')) out += '\n';
-          out += this.serializeDomToXml(el);
+          // Strip leading \n: a div starting with <br> would otherwise double the separator
+          out += this.serializeDomToXml(el).replace(/^\n/, '');
         } else {
           // Unknown element (e.g. <span> from paste) — recurse for text
           out += this.serializeDomToXml(el);
         }
       }
     }
-    // Browsers append a phantom <br> at end of contenteditable — trim it
-    return out.replace(/\n$/, '');
+    // Browsers append phantom <br>(s) at end of contenteditable — trim all trailing
+    return out.replace(/\n+$/, '');
   }
 
   // ──────────────────────────────────────────────────────────
@@ -173,7 +174,7 @@ export class XmlEditorComponent implements ControlValueAccessor, AfterViewInit {
   /** Strip rich-text HTML on paste — insert plain text only */
   onDivPaste(event: ClipboardEvent): void {
     event.preventDefault();
-    const text = event.clipboardData?.getData('text/plain') ?? '';
+    const text = (event.clipboardData?.getData('text/plain') ?? '').replace(/\r\n|\r/g, '\n');
     // insertText keeps cursor position correctly
     document.execCommand('insertText', false, text);
     this.onDivInput();
@@ -259,32 +260,37 @@ export class XmlEditorComponent implements ControlValueAccessor, AfterViewInit {
 
     if (element) {
       if (existingTag === tag) {
-        // Toggle off — replace element with its plain text
-        const text = document.createTextNode(element.textContent ?? '');
-        element.replaceWith(text);
-        const r = document.createRange();
-        r.selectNode(text);
-        selection.removeAllRanges();
-        selection.addRange(r);
+        // Toggle off — unwrap element directly, preserving inner <br> nodes
+        const children = Array.from(element.childNodes);
+        const fragment = document.createDocumentFragment();
+        while (element.firstChild) fragment.appendChild(element.firstChild);
+        element.replaceWith(fragment);
+        if (children.length > 0) {
+          const r = document.createRange();
+          r.setStartBefore(children[0]);
+          r.setEndAfter(children[children.length - 1]);
+          selection.removeAllRanges();
+          selection.addRange(r);
+        }
       } else {
-        // Replace tag — same inner content, different wrapping element
+        // Replace tag — move children to preserve inner <br> nodes
         const newEl = document.createElement(tag);
-        newEl.textContent = element.textContent ?? '';
+        while (element.firstChild) newEl.appendChild(element.firstChild);
         element.replaceWith(newEl);
         const r = document.createRange();
-        r.selectNode(newEl);
+        r.selectNodeContents(newEl);
         selection.removeAllRanges();
         selection.addRange(r);
       }
     } else {
-      // General case: grab plain text of selection, wrap with tag
-      const plain = range.toString();
+      // General case: clone selection content preserving <br> nodes, wrap with tag
+      const fragment = range.cloneContents();
       range.deleteContents();
       const newEl = document.createElement(tag);
-      newEl.textContent = plain;
+      newEl.appendChild(fragment);
       range.insertNode(newEl);
       const r = document.createRange();
-      r.selectNode(newEl);
+      r.selectNodeContents(newEl);
       selection.removeAllRanges();
       selection.addRange(r);
     }
@@ -358,9 +364,12 @@ export class XmlEditorComponent implements ControlValueAccessor, AfterViewInit {
     const startParent = this.closestAllowedTag(range.startContainer);
     const endParent = this.closestAllowedTag(range.endContainer);
 
+    // Normalize range text: browsers emit \n for <br> but textContent does not
+    const rangeText = range.toString().replace(/\n/g, '');
+
     // Both ends within the same allowed element
     if (startParent && startParent === endParent
-        && range.toString() === (startParent.textContent ?? '')) {
+        && rangeText === (startParent.textContent ?? '')) {
       return {
         element: startParent,
         tag: startParent.tagName.toLowerCase() as XmlTag,
@@ -372,7 +381,7 @@ export class XmlEditorComponent implements ControlValueAccessor, AfterViewInit {
       const el = range.commonAncestorContainer as Element;
       const t = el.tagName.toLowerCase();
       if ((ALLOWED_TAGS as string[]).includes(t)
-          && range.toString() === (el.textContent ?? '')) {
+          && rangeText === (el.textContent ?? '')) {
         return { element: el, tag: t as XmlTag };
       }
     }
