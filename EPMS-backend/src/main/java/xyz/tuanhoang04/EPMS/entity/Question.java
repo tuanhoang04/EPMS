@@ -11,7 +11,9 @@ import xyz.tuanhoang04.EPMS.entity.base.BaseEntity;
 @Setter
 @Entity
 public class Question extends BaseEntity {
+    @Column(columnDefinition = "TEXT")
     private String questionText;
+    @Column(columnDefinition = "TEXT")
     private String questionAnswer; //non-MCQ questions
     @Column(columnDefinition = "TEXT")
     private String questionChoices; //MCQ questions saved in JSON format
