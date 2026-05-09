@@ -34,3 +34,6 @@ build/
 node_modules
 
 EPMS-backend/uploads/
+
+# AFM font metrics files — "All Rights Reserved" by Adobe, do not redistribute
+*.afm

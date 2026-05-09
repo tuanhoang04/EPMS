@@ -75,7 +75,7 @@ The frontend never talks to the paper generator directly — all traffic flows t
 | Frontend | Angular 21, PrimeNG 21, TailwindCSS 4, TypeScript 5 |
 | Backend | Java 17, Spring Boot 3.5, Spring Security (JWT), Spring Data JPA |
 | Database | MySQL 8 |
-| Paper Generator | Node.js, Express 5, docx 9, TypeScript |
+| Paper Generator | Node.js, Express 5, docx 9, image-size 2, TypeScript |
 | Auth | JWT (jjwt 0.13), BCrypt |
 | API Docs | SpringDoc OpenAPI (Swagger UI) |
 
@@ -111,10 +111,11 @@ The frontend never talks to the paper generator directly — all traffic flows t
 
 ### Formatted Output (`.docx`)
 - Times New Roman throughout; proportional glyph-width layout
+- Glyph widths sourced from `Times-Roman.afm` — 315 characters including full Latin, Latin Extended-A/B, accented letters (é, ă, ș, ț, ö, ü…), ligatures, math, and the Euro sign; falls back to a built-in ASCII table if the data file is missing
 - Question header bold 12 pt, question text 12 pt, choices 11 pt
 - Short choices rendered on one line (4 columns); long choices on separate lines
 - XML formatting faithfully rendered: bold, italic, monospace (var/code)
-- Embedded images scaled to fit the page
+- Embedded images (JPEG / PNG) detected and sized via the `image-size` library; scaled to fit the page
 - Each question is guaranteed to stay on a single page (no cross-page splits)
 - Short Answer / Gap Filling questions include ruled answer lines
 
@@ -171,13 +172,18 @@ Swagger UI: `http://localhost:8080/swagger-ui.html`
 ```bash
 cd EPMS-paper-generator
 npm install
-npm run dev        # development (nodemon + ts-node)
+npm run build:widths   # generate data/times-roman-widths.json from Times-Roman.afm (run once)
+npm run dev            # development (nodemon + ts-node)
 # or
 npm run build && npm start   # production
 ```
 
 The service will be available at `http://localhost:3001`.  
 Health check: `GET http://localhost:3001/health`
+
+> `data/times-roman-widths.json` is committed to the repo, so `build:widths` is optional for most contributors — only re-run it if you update the AFM source.
+>
+> `Times-Roman.afm` is **not** committed (it is gitignored). The file carries an Adobe "All Rights Reserved" notice and must not be redistributed. If you need to regenerate the JSON, obtain the AFM from [Ghostscript's urw-base35-fonts](https://github.com/ArtifexSoftware/urw-base35-fonts) (Apache 2.0) or from your local Ghostscript installation (`/usr/share/ghostscript/<version>/Resource/Font/`), place it at the repo root as `Times-Roman.afm`, and run `npm run build:widths`.
 
 ### 4. Frontend
 
@@ -393,6 +399,10 @@ EPMS/
 │       └── shared/                 # Modal, header, pagination components
 │
 └── EPMS-paper-generator/           # Node.js docx microservice
+    ├── data/
+    │   └── times-roman-widths.json # Pre-built glyph width table (315 entries)
+    ├── scripts/
+    │   └── buildGlyphWidths.ts     # Parses Times-Roman.afm → times-roman-widths.json
     └── src/
         ├── index.ts                # Express app, port 3001
         ├── types.ts                # Shared request/response types

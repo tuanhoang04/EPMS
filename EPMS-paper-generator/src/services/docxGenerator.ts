@@ -1,3 +1,5 @@
+import * as fs from 'fs';
+import * as path from 'path';
 import {
   AlignmentType,
   BorderStyle,
@@ -24,9 +26,10 @@ const COL_WIDTH_TWIPS = Math.floor(PRINTABLE_WIDTH_TWIPS * (COL_WIDTH / 100)); /
 const CHOICE_LABELS = 'ABCDEFGHIJ'.split('');
 
 // ── Times New Roman glyph widths (Adobe Type 1, 1000 units/em) ───────────────
-// Handles wide chars (M=889, W=944), narrow chars (I=333, i=278, l=278),
-// digits, punctuation and the em-space used as label padding.
-const TNR_WIDTHS: Readonly<Record<string, number>> = {
+// Built-in fallback covering ASCII + punctuation. Merged at startup with
+// data/times-roman-widths.json (generated from Times-Roman.afm) which adds
+// the full 315-glyph set including accented and extended characters.
+const BUILTIN_TNR_WIDTHS: Readonly<Record<string, number>> = {
   ' ': 250, '!': 333, '"': 408, '#': 500, '$': 500, '%': 833, '&': 778, "'": 333,
   '(': 333, ')': 333, '*': 500, '+': 564, ',': 250, '-': 333, '.': 250, '/': 278,
   '0': 500, '1': 500, '2': 500, '3': 500, '4': 500,
@@ -44,6 +47,22 @@ const TNR_WIDTHS: Readonly<Record<string, number>> = {
   '{': 480, '|': 200, '}': 480, '~': 541,
   '\u2003': 1000, // em space
 };
+
+function loadGlyphWidths(): Readonly<Record<string, number>> {
+  try {
+    const jsonPath = path.resolve(__dirname, '../../data/times-roman-widths.json');
+    const raw = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
+    const glyphs = raw?.glyphs;
+    if (typeof glyphs === 'object' && glyphs !== null && Object.keys(glyphs).length >= 50) {
+      return Object.freeze({ ...BUILTIN_TNR_WIDTHS, ...glyphs });
+    }
+  } catch {
+    // JSON absent or malformed — silent fallback
+  }
+  return BUILTIN_TNR_WIDTHS;
+}
+
+const TNR_WIDTHS = loadGlyphWidths();
 
 /**
  * Estimates the rendered width of plain text in twips for Times New Roman.
