@@ -111,7 +111,7 @@ The frontend never talks to the paper generator directly — all traffic flows t
 
 ### Formatted Output (`.docx`)
 - Times New Roman throughout; proportional glyph-width layout
-- Glyph widths sourced from `Times-Roman.afm` — 315 characters including full Latin, Latin Extended-A/B, accented letters (é, ă, ș, ț, ö, ü…), ligatures, math, and the Euro sign; falls back to a built-in ASCII table if the data file is missing
+- Glyph widths sourced from `Times New Roman.ttf` via `opentype.js` — 2 790+ characters covering full Latin, Vietnamese, and most BMP scripts; falls back to a built-in ASCII table if the data file is missing
 - Question header bold 12 pt, question text 12 pt, choices 11 pt
 - Short choices rendered on one line (4 columns); long choices on separate lines
 - XML formatting faithfully rendered: bold, italic, monospace (var/code)
@@ -181,9 +181,9 @@ npm run build && npm start   # production
 The service will be available at `http://localhost:3001`.  
 Health check: `GET http://localhost:3001/health`
 
-> `data/times-roman-widths.json` is committed to the repo, so `build:widths` is optional for most contributors — only re-run it if you update the AFM source.
+> `data/times-roman-widths.json` is committed to the repo, so `build:widths` is optional for most contributors — only re-run it if you update the font source.
 >
-> `Times-Roman.afm` is **not** committed (it is gitignored). The file carries an Adobe "All Rights Reserved" notice and must not be redistributed. If you need to regenerate the JSON, obtain the AFM from [Ghostscript's urw-base35-fonts](https://github.com/ArtifexSoftware/urw-base35-fonts) (Apache 2.0) or from your local Ghostscript installation (`/usr/share/ghostscript/<version>/Resource/Font/`), place it at the repo root as `Times-Roman.afm`, and run `npm run build:widths`.
+> `Times New Roman.ttf` is **not** committed (it is gitignored) as it is a proprietary font. If you need to regenerate the JSON, place `Times New Roman.ttf` at the repo root and run `npm run build:widths`. The script scans the full Basic Multilingual Plane and writes widths for every glyph the font supports (typically 2 790+ characters, including full Vietnamese).
 
 ### 4. Frontend
 
@@ -400,9 +400,9 @@ EPMS/
 │
 └── EPMS-paper-generator/           # Node.js docx microservice
     ├── data/
-    │   └── times-roman-widths.json # Pre-built glyph width table (315 entries)
+    │   └── times-roman-widths.json # Pre-built glyph width table (2 790+ entries)
     ├── scripts/
-    │   └── buildGlyphWidths.ts     # Parses Times-Roman.afm → times-roman-widths.json
+    │   └── buildGlyphWidths.ts     # Reads Times New Roman.ttf → times-roman-widths.json
     └── src/
         ├── index.ts                # Express app, port 3001
         ├── types.ts                # Shared request/response types
