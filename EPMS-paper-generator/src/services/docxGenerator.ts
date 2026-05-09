@@ -172,6 +172,8 @@ function createImageParagraph(dataUrl: string, keepNext: boolean): Paragraph | n
     const info = sizeOf(buf);
     if (!info.width || !info.height) return null;
 
+    const SUPPORTED = new Set(['png', 'jpg', 'gif', 'bmp']);
+    if (!info.type || !SUPPORTED.has(info.type)) return null;
     const type = info.type as 'png' | 'jpg' | 'gif' | 'bmp';
     const { width, height } = calcImageSize(info.width, info.height, MAX_IMG_W, MAX_IMG_H);
 

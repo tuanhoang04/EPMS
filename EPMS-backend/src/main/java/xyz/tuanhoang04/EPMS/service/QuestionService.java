@@ -19,6 +19,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Base64;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -153,6 +154,9 @@ public class QuestionService {
                 // Extract extension from header
                 if (header.contains("image/")) {
                     extension = header.substring(header.indexOf("image/") + 6, header.indexOf(";"));
+                    if (!Set.of("jpeg", "jpg", "png", "gif", "bmp").contains(extension)) {
+                        throw new IllegalArgumentException("Unsupported image format: " + extension);
+                    }
                 }
             }
 

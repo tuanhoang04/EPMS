@@ -93,7 +93,7 @@ The frontend never talks to the paper generator directly — all traffic flows t
 - Assign questions to a **subject → topic** hierarchy
 - Set difficulty: `BEGINNER`, `EASY`, `INTERMEDIATE`, `ADVANCED`
 - Format question text and choices with inline XML tags: `<b>`, `<i>`, `<var>`, `<code>`
-- Attach an image to any question (PNG / JPG)
+- Attach an image to any question (JPEG, PNG, GIF, BMP)
 - Filter questions by subject, topic, difficulty, type, and free-text search
 
 ### Exam Templates
@@ -115,7 +115,7 @@ The frontend never talks to the paper generator directly — all traffic flows t
 - Question header bold 12 pt, question text 12 pt, choices 11 pt
 - Short choices rendered on one line (4 columns); long choices on separate lines
 - XML formatting faithfully rendered: bold, italic, monospace (var/code)
-- Embedded images (JPEG / PNG) detected and sized via the `image-size` library; scaled to fit the page
+- Embedded images (JPEG, PNG, GIF, BMP) detected and sized via the `image-size` library; scaled to fit the page; unsupported formats are silently skipped
 - Each question is guaranteed to stay on a single page (no cross-page splits)
 - Short Answer / Gap Filling questions include ruled answer lines
 

@@ -220,7 +220,7 @@
           }
         </div>
         <div class="image-actions">
-          <input #fileInput type="file" accept="image/*" style="display:none" (change)="onImageSelected($event)" />
+          <input #fileInput type="file" accept="image/jpeg,image/png,image/gif,image/bmp" style="display:none" (change)="onImageSelected($event)" />
           <button class="upload-btn" type="button" (click)="triggerFileInput(fileInput)">
             <i class="pi pi-upload"></i> {{ imageBase64() ? 'Change Image' : 'Upload Image' }}
           </button>
